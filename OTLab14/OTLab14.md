@@ -66,11 +66,12 @@ Hint: {xxx.xxx.x0.xxx} and {xxx.xxx.x1.xxx}
 ## 🛠️ Usage
 
 ```
-Usage: ./DNP3Lab.sh -start [kali|ubuntu] | -stop | -clean | -run | -restart | -status
+Usage: ./DNP3Lab.sh -start [kali|ubuntu] | -stop | -clean | -run | -web | -restart | -status
 
   -start     Start the DNP3Lab environment using the specified distro (default: ubuntu)
              Valid options: kali (rolling) or ubuntu (22.04)
   -run       Open a terminal inside the otlab-student container
+  -web       Print the noVNC URL to access the student desktop
   -clean     Remove containers, volumes, and network
   -stop      Stop all containers
   -restart   Restart previously stopped containers
