@@ -66,7 +66,7 @@ Hint: {xxx.xxx.x0.xxx} and {xxx.xxx.x1.xxx}
 ## 🛠️ Usage
 
 ```
-Usage: ./DNP3Lab.sh -start [kali|ubuntu] | -stop | -clean | -run | -web | -restart | -status
+Usage: ./OTLab14.sh -start [kali|ubuntu] | -stop | -clean | -run | -web | -restart | -status
 
   -start     Start the DNP3Lab environment using the specified distro (default: ubuntu)
              Valid options: kali (rolling) or ubuntu (22.04)
