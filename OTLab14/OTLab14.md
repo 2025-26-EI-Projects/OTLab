@@ -25,7 +25,7 @@ Hint: {xxx.xxx.x0.xxx} and {xxx.xxx.x1.xxx}
 
 - [ ] From the `EWS/otlab-student`, scan the outstation host using nmap and identify the number of the open TCP port serving DNP3. Hint: {xxxxx/tcp}
 
-- [ ] Access the otlab-student desktop using the browser at http://localhost:3000/, capture live traffic on the OT-side interface of the using Wireshark and isolate the DNP3 conversation between `master` and `outstation`. To open Wireshark you'll need to issue the command `wireshark` in the terminal emulator inside the otlab-student workstation.
+- [ ] Access the otlab-student desktop using the browser at http://localhost:3000/, capture live traffic in its OT-side interface using Wireshark and isolate the DNP3 conversation between `master` and `outstation`. To open Wireshark you'll need to issue the command `wireshark` in the terminal emulator inside the otlab-student workstation.
 
 - [ ] Identify the **two DNP3 layers** visible in each frame and explain, in your own words, the role of each.
     - *Hint: {xxxx xxxx layer} (with start bytes `0x05 0x64`) and {xxxxxxxxxxx layer}.*
