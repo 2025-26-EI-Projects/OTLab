@@ -64,13 +64,13 @@ Every Application PDU contains:
 
 Each Object header carries:
 
-| Field           | Meaning                                                                 |
-|-----------------|-------------------------------------------------------------------------|
-| Group           | The class of point (binary input, analog input, counter, etc.).         |
+| Field           | Meaning                                                                     |
+|-----------------|-----------------------------------------------------------------------------|
+| Group           | The class of point (binary input, analog input, counter, etc.).             |
 | Variation       | How that point is encoded (with/without flags, 16-bit vs 32-bit, float, …). |
-| Qualifier       | How the indices that follow are expressed (range, count, prefixed, …). |
-| Range / Count   | Which indices the data block covers.                                    |
-| Data            | The actual point values (interpretation depends on Group + Variation).  |
+| Qualifier       | How the indices that follow are expressed (range, count, prefixed, …).      |
+| Range / Count   | Which indices the data block covers.                                        |
+| Data            | The actual point values (interpretation depends on Group + Variation).      |
 
 ---
 
@@ -108,16 +108,16 @@ Outstation → master **responses**:
 
 (For the full DNP3 object library see the protocol specification — this is a small useful subset.)
 
-| Group | Class         | What it carries                                  |
-|------:|---------------|--------------------------------------------------|
-| 1     | Binary Input  | On/off status points (e.g. breaker open/closed). |
-| 2     | Binary Input Event | Time-tagged changes of Binary Input points. |
-| 10    | Binary Output | Output coil status.                              |
-| 12    | Binary Command| Control commands for binary outputs.             |
-| 30    | Analog Input  | Measured analog values (voltage, current, …).    |
-| 32    | Analog Input Event | Time-tagged changes of Analog Input points. |
-| 41    | Analog Output | Output analog command points.                    |
-| 50    | Time and Date | Used for time sync.                              |
+| Group | Class              | What it carries                                  |
+|------:|--------------------|--------------------------------------------------|
+| 1     | Binary Input       | On/off status points (e.g. breaker open/closed). |
+| 2     | Binary Input Event | Time-tagged changes of Binary Input points.      |
+| 10    | Binary Output      | Output coil status.                              |
+| 12    | Binary Command     | Control commands for binary outputs.             |
+| 30    | Analog Input       | Measured analog values (voltage, current, …).    |
+| 32    | Analog Input Event | Time-tagged changes of Analog Input points.      |
+| 41    | Analog Output      | Output analog command points.                    |
+| 50    | Time and Date      | Used for time sync.                              |
 
 A *variation* selects the encoding: e.g. Group 30 var 1 = 32-bit int with flags, var 2 = 16-bit int with flags, var 5 = 32-bit float, var 6 = 64-bit float. Wireshark shows the variation as part of the object header.
 
@@ -133,7 +133,7 @@ A *variation* selects the encoding: e.g. Group 30 var 1 = 32-bit int with flags,
 | Only requests with a given function code        | `dnp3.al.func == <code>` (e.g. `dnp3.al.func == 1`)   |
 | Filter on the data-link source address          | `dnp3.src == <id>`                                    |
 | Filter on the data-link destination address     | `dnp3.dst == <id>`                                    |
-| Show only frames carrying objects of a group    | `dnp3.al.obj == <group_variation_combined>` *           |
+| Show only frames carrying objects of a group    | `dnp3.al.obj == <group_variation_combined>` *         |
 
 \* Wireshark expresses Group/Variation as a single integer (Group × 256 + Variation). When in doubt, click the field in Packet Details — Wireshark shows the exact filter expression at the bottom of the window.
 
@@ -141,14 +141,14 @@ A *variation* selects the encoding: e.g. Group 30 var 1 = 32-bit int with flags,
 
 ## 🧭 Useful Wireshark navigation
 
-| What you want                                            | How                                                              |
-|----------------------------------------------------------|------------------------------------------------------------------|
-| Inspect raw bytes of a frame                             | Bottom pane (**Packet Bytes**). Click a field to highlight bytes. |
-| See the symbolic name of any DNP3 field                  | Click the field in **Packet Details**; the filter expression appears at the bottom-left status bar. |
-| Measure time between filtered packets                    | **View → Time Display Format → Seconds Since Previous Displayed Packet**. |
-| Visualise periodicity                                    | **Statistics → I/O Graph**, with your filter and a 1 s interval. |
-| Follow a TCP conversation as bytes                       | Right-click a packet → **Follow → TCP Stream**.                  |
-| Export a single PDU as bytes                             | Right-click in Packet Bytes → **Copy → … as Hex Stream**.        |
+| What you want                                            | How                                                                              |
+|----------------------------------------------------------|----------------------------------------------------------------------------------|
+| Inspect raw bytes of a frame                             | Bottom pane (**Packet Bytes**). Click a field to highlight bytes.                |
+| See the symbolic name of any DNP3 fiel                   |  **Packet Details**; the filter expression appears at the bottom-left status bar.|
+| Measure time between filtered packets                    | **View → Time Display Format → Seconds Since Previous Displayed Packet**.        |
+| Visualise periodicity                                    | **Statistics → I/O Graph**, with your filter and a 1 s interval.                 |
+| Follow a TCP conversation as bytes                       | Right-click a packet → **Follow → TCP Stream**.                                  |
+| Export a single PDU as bytes                             | Right-click in Packet Bytes → **Copy → … as Hex Stream**.                        |
 
 ---
 

@@ -1,12 +1,26 @@
 # DNP3 & Wireshark Lab
 
+![](https://raw.githubusercontent.com/substationworm/OTLab/main/OTLab-SecondHeader.png "DNP3 & Wireshark Lab")
+
+[![Curriculum Lattes](https://img.shields.io/badge/Lattes-white)](http://lattes.cnpq.br/8846358506427099)
+[![ORCID](https://img.shields.io/badge/ORCID-grey)](https://orcid.org/0000-0002-6254-7306)
+[![SciProfiles](https://img.shields.io/badge/SciProfiles-black)](https://sciprofiles.com/profile/lffreitas-gutierres)
+[![Scopus](https://img.shields.io/badge/Scopus-white)](https://www.scopus.com/authid/detail.uri?authorId=57195542368)
+[![Web of Science](https://img.shields.io/badge/ResearcherID-grey)](https://www.webofscience.com/wos/author/record/Q-8444-2016)
+[![substationworm](https://img.shields.io/badge/substationworm-black)](https://github.com/substationworm)
+[![LFFreitasGutierres](https://img.shields.io/badge/LFFreitasGutierres-white)](https://github.com/LFFreitas-Gutierres)
+
+[![GitHub fariasrafael10](https://img.shields.io/badge/GitHub-fariasrafael10-black)](https://github.com/fariasrafael10)
+[![LinkedIn Farias Rafael](https://img.shields.io/badge/LinkedIn-Farias_Rafael-blue)](https://www.linkedin.com/in/farias-rafael/)
+[![IPLeiria ESTG-DEI](https://img.shields.io/badge/IPLeiria-ESTG--DEI-green)](https://www.ipleiria.pt/estg-dei/)
+
 ## Scenario
 
 A small electric utility runs a remote substation that publishes telemetry over **DNP3** to a control center located in the corporate network. You — the student — sit at the **engineering workstation (EWS/otlab-student)**, which is dual-homed between the (`OT segment`) and the (`corporate`) segment and forwards traffic between them.
 
 Your job in this lab is to **understand how DNP3 carries the conversation** between the master and the outstation: where each host sits, what the protocol exchanges look like on the wire, which data points are being polled, and what the protocol does *not* do (spoiler: confidentiality and authentication).
 
-This is the first lab in a three-part story. Lab 2 will introduce anomalous traffic on the same topology, which you will detect with Zeek. Lab 3 will walk through the incident-response steps triggered by what Lab 2 surfaces. Each lab can be taken by itself, but we highly recommend completing them in order to gain a broader, more holistic understanding of how these topics connect.
+This is the first lab in a three-part story. OTLab15 will introduce anomalous traffic on the same topology, which you will detect with Zeek. OTLab16 will walk through the incident-response steps triggered by what OTLab15 surfaces.
 
 > [!NOTE]
 > While analysing the captured traffic, refer to `DNP3WiresharkReference.md` for the Wireshark dissector field names, the DNP3 frame layout, the function code table, and useful display filters. It is meant as a lookup card — keep it open in another tab.
@@ -44,11 +58,22 @@ Hint: {xxx.xxx.x0.xxx} and {xxx.xxx.x1.xxx}
 
 - [ ] Inspect the bytes of any single DNP3 application message and answer: *Is any field encrypted? Is the master authenticated? What would an attacker learn — or change — by intercepting this traffic?*
 
-- [ ] Briefly document your findings (one paragraph) describing the protocol behavior and the security properties (or lack thereof) you observed. **This document is the input for Lab 2.** 
+- [ ] Briefly document your findings (one paragraph) describing the protocol behavior and the security properties (or lack thereof) you observed. **This document is the input for OTLab15.** 
 
 
 > [!NOTE]
-> The outstation simulates a feeder breaker: it publishes a voltage reading in the 110–130 V range and a current reading in the 0.5–15 A range every 5 seconds, and toggles a `BreakerOpen` flag every 20 updates (≈100 s). The master polls every 10 seconds. Knowing the *expected* baseline of this lab — including the value ranges — is what will let you map the DNP3 indices to the right variables and spot anomalies in Lab 2.
+> The outstation simulates a feeder breaker: it publishes a voltage reading in the 110–130 V range and a current reading in the 0.5–15 A range every 5 seconds, and toggles a `BreakerOpen` flag every 20 updates (≈100 s). The master polls every 10 seconds. Knowing the *expected* baseline of this lab — including the value ranges — is what will let you map the DNP3 indices to the right variables and spot anomalies in OTLab15.
+
+## 🎯 Skills
+
+**Hands-on:** Network Reconnaissance · Packet Capture (Wireshark) · DNP3 Protocol Dissection · OT/ICS Security Analysis
+
+**Mapped to [MITRE ATT&CK for ICS](https://attack.mitre.org/matrices/ics/):**
+
+[![T0846 Remote System Discovery](https://img.shields.io/badge/ATT%26CK_ICS-T0846_Remote_System_Discovery-red)](https://attack.mitre.org/techniques/T0846/)
+[![T0840 Network Connection Enumeration](https://img.shields.io/badge/ATT%26CK_ICS-T0840_Network_Connection_Enumeration-red)](https://attack.mitre.org/techniques/T0840/)
+[![T0842 Network Sniffing](https://img.shields.io/badge/ATT%26CK_ICS-T0842_Network_Sniffing-red)](https://attack.mitre.org/techniques/T0842/)
+[![T0861 Point & Tag Identification](https://img.shields.io/badge/ATT%26CK_ICS-T0861_Point_%26_Tag_Identification-red)](https://attack.mitre.org/techniques/T0861/)
 
 ## 🔖 Nomenclature
 

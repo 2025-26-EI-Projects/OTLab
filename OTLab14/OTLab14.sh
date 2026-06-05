@@ -7,20 +7,14 @@ ot_container_name01="dnp3-outstation"
 ot_container_name02="dnp3-master"
 ews_container_name="otlab-student"
 
-# DNP3 outstation/master stay CLI — no GUI needed there
 ubuntu_image="ubuntu:22.04"
 kali_image="kalilinux/kali-rolling"
 
-# Student container is now a full desktop with noVNC web access.
-# linuxserver/webtop ships an Ubuntu+XFCE desktop reachable at http://<host>:3000
-# linuxserver/kali-linux ships a Kali rolling desktop reachable the same way
 ews_ubuntu_image="lscr.io/linuxserver/webtop:ubuntu-xfce"
 ews_kali_image="lscr.io/linuxserver/kali-linux:latest"
 
-# Tools installed on first boot inside the student desktop
 ews_install_packages="iputils-ping|nmap|net-tools|tcpdump|tshark|wireshark|iproute2|procps|iptables|sudo"
 
-# Host port for the noVNC web UI (container always exposes 3000 internally)
 ews_web_port="3000"
 
 lab_net01="dnp3-ot-net"
