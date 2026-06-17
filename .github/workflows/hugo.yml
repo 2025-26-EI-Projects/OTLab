@@ -1,0 +1,372 @@
+name: Deploy Hugo site to GitHub Pages
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: 'latest'
+          extended: true
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Install PDF generator
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            pandoc \
+            texlive-xetex \
+            texlive-fonts-recommended \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            librsvg2-bin \
+            fonts-noto-core \
+            fontconfig
+
+          fc-cache -f -v
+      
+      - name: Generate Hugo mounts for OTLabs
+        run: |
+          MOUNTS_FILE=".landingPage/hugo.generated-mounts.yaml"
+
+          cat > "$MOUNTS_FILE" << 'EOF'
+          module:
+            mounts:
+              - source: .landingPage/archetypes
+                target: archetypes
+
+              - source: .landingPage/layouts
+                target: layouts
+
+              - source: .landingPage/static
+                target: static
+
+              - source: .landingPage/i18n
+                target: i18n
+
+              - source: .landingPage/content
+                target: content
+
+              - source: .landingPage/content/labs.md
+                target: content/labs/_index.md
+
+              - source: .landingPage/content/labs.en.md
+                target: content/labs/_index.en.md
+
+              - source: .landingPage/content/labs.es.md
+                target: content/labs/_index.es.md
+          EOF
+
+          while IFS= read -r labdir; do
+            labname=$(basename "$labdir")
+
+            cat >> "$MOUNTS_FILE" << EOF
+
+              - source: $labname
+                target: content/labs/$labname
+          EOF
+          done < <(find . -maxdepth 1 -type d -name "OTLab[0-9]*" | sort)
+
+          echo "Generated mounts:"
+          cat "$MOUNTS_FILE"
+      
+      - name: Build site
+        run: hugo --config .landingPage/hugo.yaml,.landingPage/hugo.generated-mounts.yaml --minify --gc
+
+      - name: Generate PDFs from Markdown into each lab folder
+        run: |
+          TEMPLATE_DIR="/tmp/pdf-template"
+          EMOJI_DIR="/tmp/twemoji"
+          mkdir -p "$TEMPLATE_DIR" "$EMOJI_DIR"
+
+          cat > "$TEMPLATE_DIR/template.tex" << 'EOF'
+          \documentclass[11pt,a4paper]{article}
+
+          \usepackage{fontspec}
+          \usepackage{geometry}
+          \usepackage{xcolor}
+          \usepackage{amssymb}
+          \usepackage{graphicx}
+          \usepackage{hyperref}
+          \usepackage{xurl}
+          \usepackage{seqsplit}
+          \usepackage{longtable}
+          \usepackage{booktabs}
+          \usepackage{array}
+          \usepackage{enumitem}
+          \usepackage{listings}
+          \usepackage{float}
+          \setcounter{secnumdepth}{0}
+
+          \geometry{margin=2.5cm}
+          \setmainfont[Renderer=HarfBuzz]{Noto Sans}
+
+          \definecolor{titlecolor}{HTML}{1F4E79}
+
+          \hypersetup{
+            colorlinks=true,
+            linkcolor=titlecolor,
+            urlcolor=titlecolor,
+            breaklinks=true
+          }
+
+          \emergencystretch=5em
+          \sloppy
+
+          \setlist[itemize]{leftmargin=*, itemsep=0.25em}
+          \setlist[enumerate]{leftmargin=*}
+
+          \lstset{
+            breaklines=true,
+            breakatwhitespace=false,
+            basicstyle=\ttfamily\small,
+            columns=fullflexible
+          }
+
+          \providecommand{\tightlist}{%
+            \setlength{\itemsep}{0pt}
+            \setlength{\parskip}{0pt}
+          }
+
+          \begin{document}
+
+          \begin{center}
+          {\Huge \bfseries \textcolor{titlecolor}{$title$}}
+          \end{center}
+
+          \vspace{0.6cm}
+
+          $body$
+
+          \end{document}
+          EOF
+
+          FORCE_REGENERATE=true
+
+          for labdir in OTLab*/; do
+            [ -d "$labdir" ] || continue
+
+            for mdfile in "$labdir"/*.md; do
+              [ -f "$mdfile" ] || continue
+
+              basename_file=$(basename "$mdfile")
+
+              case "$basename_file" in
+                OTLab*.md)
+                  ;;
+                *)
+                  continue
+                  ;;
+              esac
+              
+              filename=$(basename "$mdfile" .md)
+              pdf_file="${labdir}${filename}.pdf"
+              
+              temp_md="/tmp/$filename.md"
+              img_file="/tmp/$filename-header.png"
+
+              if [ "$FORCE_REGENERATE" = "true" ] || [ ! -f "$pdf_file" ] || [ "$mdfile" -nt "$pdf_file" ]; then
+                echo "A gerar PDF: $pdf_file"
+
+                INPUT_FILE="$mdfile" \
+                OUTPUT_FILE="$temp_md" \
+                IMG_FILE="$img_file" \
+                EMOJI_DIR="$EMOJI_DIR" \
+                FILENAME="$filename" \
+                python3 << 'PYEOF'
+          import os
+          import re
+          import urllib.request
+
+          input_file = os.environ["INPUT_FILE"]
+          output_file = os.environ["OUTPUT_FILE"]
+          img_file = os.environ["IMG_FILE"]
+          emoji_dir = os.environ["EMOJI_DIR"]
+          filename = os.environ["FILENAME"]
+
+          def download_emoji(code, filename):
+              path = os.path.join(emoji_dir, filename)
+              if not os.path.exists(path):
+                  url = f"https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/{code}.png"
+                  urllib.request.urlretrieve(url, path)
+              return path
+
+          emoji_files = {
+              "📝": download_emoji("1f4dd", "memo.png"),
+              "🔖": download_emoji("1f516", "bookmark.png"),
+              "🛠️": download_emoji("1f6e0", "tools.png"),
+              "🛠": download_emoji("1f6e0", "tools.png"),
+              "1️⃣": download_emoji("31-20e3", "one.png"),
+              "2️⃣": download_emoji("32-20e3", "two.png"),
+              "3️⃣": download_emoji("33-20e3", "three.png"),
+              "4️⃣": download_emoji("34-20e3", "four.png"),
+              "5️⃣": download_emoji("35-20e3", "five.png"),
+              "6️⃣": download_emoji("36-20e3", "six.png"),
+              "7️⃣": download_emoji("37-20e3", "seven.png"),
+              "8️⃣": download_emoji("38-20e3", "eight.png"),
+              "9️⃣": download_emoji("39-20e3", "nine.png"),
+              "🔟": download_emoji("1f51f", "ten.png"),
+          }
+
+          def latex_escape(text):
+              return (
+                  text.replace("\\", r"\textbackslash{}")
+                      .replace("&", r"\&")
+                      .replace("%", r"\%")
+                      .replace("$", r"\$")
+                      .replace("#", r"\#")
+                      .replace("_", r"\_")
+                      .replace("{", r"\{")
+                      .replace("}", r"\}")
+                      .replace("~", r"\textasciitilde{}")
+                      .replace("^", r"\textasciicircum{}")
+                      .replace("<", r"\textless{}")
+                      .replace(">", r"\textgreater{}")
+              )
+
+          with open(input_file, "r", encoding="utf-8-sig") as f:
+              content = f.read()
+
+          title_match = re.search(r'^title:\s*"([^"]+)"', content, re.MULTILINE)
+          title = title_match.group(1) if title_match else filename
+
+          content = re.sub(r'\A---\s*\n[\s\S]*?\n---\s*\n?', '', content)
+
+          image_pattern = r'!\[([^\]]*)\]\((https?://[^\s\)]+)(?:\s+"[^"]*")?\)'
+
+          image_match = re.search(image_pattern, content)
+
+          if image_match:
+              img_url = image_match.group(2)
+              urllib.request.urlretrieve(img_url, img_file)
+
+              latex_img = (
+                  "\n\n"
+                  r"\begin{center}" "\n"
+                  r"\includegraphics[width=0.85\textwidth]{" + img_file + r"}" "\n"
+                  r"\end{center}"
+                  "\n\n"
+              )
+
+              content = re.sub(image_pattern, lambda m: latex_img, content, count=1)
+
+          if input_file.endswith("-EN.md"):
+              warning_label = "Warning"
+          elif input_file.endswith("-ES.md"):
+              warning_label = "Advertencia"
+          else:
+              warning_label = "Aviso"
+
+          content = re.sub(
+              r'^> \[!WARNING\]\n((?:>.*\n?)+)',
+              r'**' + warning_label + r':**\n\n\1',
+              content,
+              flags=re.MULTILINE
+          )
+
+          for emoji_char, emoji_path in emoji_files.items():
+              latex_emoji = (
+                  r'\raisebox{-0.15em}{\includegraphics[height=1em]{'
+                  + emoji_path +
+                  r'}}'
+              )
+              content = content.replace(emoji_char, latex_emoji)
+
+          def replace_long_flag(match):
+              raw = match.group(1)
+              escaped = latex_escape(raw)
+              return r'\texttt{\footnotesize\seqsplit{' + escaped + r'}}'
+
+          content = re.sub(
+              r'`(OTLab\d+\{[^`]+?\})`',
+              replace_long_flag,
+              content
+          )
+
+          content = f'---\ntitle: "{title}"\n---\n\n' + content
+
+          with open(output_file, "w", encoding="utf-8") as f:
+              f.write(content)
+          PYEOF
+
+                pandoc "$temp_md" \
+                  --from markdown+raw_tex+raw_html+task_lists \
+                  --pdf-engine=xelatex \
+                  --template="$TEMPLATE_DIR/template.tex" \
+                  -o "$pdf_file"
+
+              else
+                echo "PDF já existe e não houve alterações: $pdf_file"
+              fi
+            done
+          done
+
+      - name: Commit generated PDFs
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          PDFS=$(find OTLab* -name "*.pdf" 2>/dev/null || true)
+
+          if [ -z "$PDFS" ]; then
+            echo "Nenhum PDF encontrado para gravar."
+            exit 0
+          fi
+
+          git add $PDFS
+
+          if git diff --cached --quiet; then
+            echo "Sem PDFs novos para gravar."
+          else
+            git commit -m "chore: atualizar PDFs dos labs [skip ci]"
+            git push
+          fi
+
+      - name: Rebuild site with PDFs
+        run: hugo --config .landingPage/hugo.yaml,.landingPage/hugo.generated-mounts.yaml --minify --gc
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+  deploy:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

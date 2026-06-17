@@ -1,5 +1,13 @@
-# OTLab02
-
+﻿---
+title: "Lab 02 - Emulação de PLC Siemens S7"
+description: "Descoberta e análise de um PLC Siemens S7 através de escaneamento de rede, enumeração de serviços e identificação de protocolos específicos do fabricante."
+categories: ["Laboratórios"]
+difficulty: "Intermédio"
+tags: ["OT", "ICS", "PLC", "Siemens S7", "S7 Protocol", "Network Discovery", "Nmap", "Masscan", "Netdiscover", "Plcscan"]
+estimated_time: "60 min"
+level: 0
+area: "discovery"
+---
 ![](https://raw.githubusercontent.com/substationworm/OTLab/main/OTLab-SecondHeader.png "OTLab02")
 
 [![Curriculum Lattes](https://img.shields.io/badge/Lattes-white)](http://lattes.cnpq.br/8846358506427099)
@@ -10,29 +18,32 @@
 [![substationworm](https://img.shields.io/badge/substationworm-black)](https://github.com/substationworm)
 [![LFFreitasGutierres](https://img.shields.io/badge/LFFreitasGutierres-white)](https://github.com/LFFreitas-Gutierres)
 
-## 📝 Tasks
+## 📝 Tarefas
 
 > [!WARNING]
-> The tasks in this document are strictly educational, observational, and non-intrusive, and must fully comply with ethical and legal standards.
+> As tarefas deste documento são estritamente educativas, observacionais e não intrusivas, e devem cumprir integralmente os padrões éticos e legais.
 
-- [ ] Verify the IP address of the `otlab-student` workstation.
-- [ ] Determine the subnet range of the network where the `otlab-student` workstation is deployed.
-- [ ] Discover the IP address, MAC address, and vendor information of other active hosts within the network.
-    - *Hint: It is a PLC*.
-- [ ] Identify open ports and available services on the OT-ICS host over both TCP and UDP protocols.
-- [ ] Determine the proprietary industrial communication protocol used by the PLC.
-- [ ] Retrieve additional system information using vendor-specific `nmap` scripts.
-- [ ] Execute a `plcscan` on the OT-ICS device detected on the network and collect further data.
+- 1️⃣ Verifica o endereço IP da estação de trabalho `otlab-student`.
+- 2️⃣ Determina o intervalo da subrede da rede onde a estação `otlab-student` está implementada.
+- 3️⃣ Descobre o endereço IP, o endereço MAC e a informação do fabricante de outros hosts ativos dentro da rede.  
+  - *Dica: é um PLC*.
+- 4️⃣ Identifica as portas abertas e os serviços disponíveis no host OT-ICS tanto em TCP como em UDP.
+- 5️⃣ Determina o protocolo de comunicação industrial proprietário utilizado pelo PLC.
+- 6️⃣ Obtém informação adicional do sistema através de scripts específicos do fabricante no `nmap`.
+- 7️⃣ Executa um `plcscan` sobre o dispositivo OT-ICS detetado na rede e recolhe mais dados.
 
-> [!NOTE]
-> On the `otlab-student` workstation, the `plcscan` tool ([meeas/plcscan](https://github.com/meeas/plcscan)) must be executed using `python2`.
+#### Nota: Na estação de trabalho `otlab-student`, a ferramenta `plcscan` ([meeas/plcscan](https://github.com/meeas/plcscan)) deve ser executada utilizando `python2`.
 
-## 🔖 Nomenclature
+## 🛠️ Ferramentas
 
-- ICS: Industrial control system.
-- IP: Internet protocol.
-- MAC: Media access control.
-- OT: Operational technology.
-- PLC: Programmable logic controller.
-- TCP: Transmission control protocol.
-- UDP: User datagram protocol.
+- As seguintes ferramentas estão disponíveis na estação de trabalho `otlab-student` para completar o OTLab 2: `ifconfig`, `masscan`, `netdiscover`, `nmap` e `plcscan`.
+
+## 🔖 Nomenclatura
+
+- ICS: sistema de controlo industrial.
+- IP: protocolo de Internet.
+- MAC: controlo de acesso ao meio.
+- OT: tecnologia operacional.
+- PLC: controlador lógico programável.
+- TCP: protocolo de controlo de transmissão.
+- UDP: protocolo de datagramas de utilizador.

@@ -1,0 +1,24 @@
+{{ $file := .Get "file" }}
+{{ $dir := .Page.File.Dir }}
+{{ $path := printf "%s%s" $dir $file }}
+
+{{ if fileExists $path }}
+
+  {{ $content := readFile $path }}
+
+  {{ $parts := split $content "---" }}
+
+  {{ $processed := $content }}
+
+  {{ if ge (len $parts) 3 }}
+    {{ $processed = index $parts 2 }}
+  {{ end }}
+
+  <div class="readfile-content">
+    {{ $processed | markdownify }}
+  </div>
+
+{{ else }}
+
+
+{{ end }}

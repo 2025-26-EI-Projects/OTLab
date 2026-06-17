@@ -1,0 +1,50 @@
+baseURL: "https://josejoao05.github.io/ExemploPagina.github.io/"
+defaultContentLanguage: "pt"
+defaultContentLanguageInSubdir: false
+
+languages:
+  pt:
+    label: "Português"
+    locale: "pt-PT"
+    weight: 1
+    title: "OTLab"
+    params:
+      description: "Plataforma educativa open-source para cibersegurança em Tecnologias Operacionais e Sistemas de Controlo Industrial."
+      flag: "🇵🇹"
+
+  en:
+    label: "English"
+    locale: "en"
+    weight: 2
+    title: "OTLab"
+    params:
+      description: "Open-source educational platform for cybersecurity in Operational Technologies and Industrial Control Systems."
+      flag: "🇬🇧"
+
+  es:
+    label: "Español"
+    locale: "es"
+    weight: 3
+    title: "OTLab"
+    params:
+      description: "Plataforma educativa de código abierto para ciberseguridad en Tecnologías Operacionales y Sistemas de Control Industrial."
+      flag: "🇪🇸"
+
+params:
+  github: "https://github.com/josejoao05/ExemploPagina.github.io"
+  license: "CC-BY-4.0"
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+  highlight:
+    noClasses: false
+  tableOfContents:
+    startLevel: 2
+    endLevel: 4
+    ordered: false
+
+outputs:
+  home:
+    - HTML

@@ -1,0 +1,85 @@
+{{ define "main" }}
+<article class="post" itemscope itemtype="https://schema.org/WebPage">
+  <header class="post-header">
+    <div class="post-meta">
+      {{ with .Date }}
+      <time datetime="{{ .Format " 2006-01-02" }}" itemprop="datePublished">
+        {{ .Format (i18n "date_format") }}
+      </time>
+      {{ end }}
+
+      <span class="reading-time">
+        ~{{ div (len (split .Content " ")) 200 }} {{ i18n "reading_time" }}
+      </span>
+    </div>
+
+    <h1 itemprop="headline">{{ .Title }}</h1>
+
+    {{ with .Description }}
+    <p class="post-description" itemprop="description">{{ . }}</p>
+    {{ end }}
+  </header>
+
+  <div class="post-content-wrapper">
+    <aside class="post-sidebar">
+      <nav class="toc-nav">
+        <h3>{{ i18n "toc_title" }}</h3>
+
+        {{ $headings := findRE "<h2 id=\"[^\"]+\".*?>.*?</h2>" .Content }}
+
+        {{ if gt (len $headings) 0 }}
+        <ul>
+          {{ range $headings }}
+          {{ $id := replaceRE ".*id=\"([^\"]+)\".*" "$1" . }}
+          {{ $text := replaceRE "<[^>]+>" "" . }}
+
+            <li>
+              <a href="#{{ $id }}">{{ $text }}</a>
+            </li>
+            {{ end }}
+        </ul>
+        {{ else }}
+        <p class="toc-empty">Sem secções.</p>
+        {{ end }}
+      </nav>
+    </aside>
+
+    <div class="post-content" itemprop="articleBody">
+      {{ .Content }}
+    </div>
+  </div>
+
+    {{ if or .Params.tags .Params.categories }}
+  <div class="post-footer">
+    {{ with .Params.tags }}
+    <div class="tags">
+      <strong>Tags:</strong>
+      {{ range . }}
+      <span>{{ . }}</span>
+      {{ end }}
+    </div>
+    {{ end }}
+  </div>
+  {{ end }}
+</article>
+
+{{ $related := where .Site.RegularPages "Section" .Section | first 3 }}
+{{ if $related }}
+<section class="related-posts">
+  <h2>{{ i18n "related_title" }}</h2>
+  <div class="grid">
+    {{ range $related }}
+    {{ if ne .Permalink $.Permalink }}
+    <article class="card">
+      <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+      <p>{{ .Summary | plainify | truncate 100 }}</p>
+      <a href="{{ .RelPermalink }}" class="btn btn-secondary btn-sm">
+        {{ i18n "read_more" }}
+      </a>
+    </article>
+    {{ end }}
+    {{ end }}
+  </div>
+</section>
+{{ end }}
+{{ end }}

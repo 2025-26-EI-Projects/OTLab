@@ -1,0 +1,185 @@
+# Navegação
+nav_home: "Início"
+nav_labs: "Laboratórios"
+nav_docs: "Documentação"
+nav_about: "Sobre"
+nav_aria: "Navegação principal"
+nav_theme_label: "Alternar tema"
+nav_theme_dark: "Ativar modo escuro"
+nav_theme_light: "Ativar modo claro"
+nav_learning: "Roteiro"
+
+# Acessibilidade
+skip_to_content: "Saltar para o conteúdo"
+back_to_top: "Voltar ao topo"
+copy_code: "Copiar Link"
+copy_failed: "Falhou ao copiar Link"
+view_content: "ver conteúdo"
+# Rodapé
+footer_tagline: "Plataforma educativa open-source para cibersegurança em sistemas industriais OT/ICS."
+footer_nav: "Navegação"
+footer_about: "Sobre"
+footer_collab: "Desenvolvido no contexto de colaboração internacional com a UFSM para apoiar ensino, investigação e documentação open-source em cibersegurança industrial."
+
+# Breadcrumb
+breadcrumb_aria: "Breadcrumb"
+
+# Herói (página inicial)
+hero_eyebrow: "OTLAB • Cybersecurity for Industrial Systems"
+hero_title: "Aprende cibersegurança OT com laboratórios práticos e progressivos."
+hero_subtitle: "Uma plataforma open-source para treinar descoberta, segmentação, monitorização, resposta a incidentes e hardening em ambientes industriais IT/OT."
+hero_cta_labs: "Começar pelos laboratórios"
+hero_cta_docs: "Ver documentação"
+hero_panel_title: "Projeto OTLAB"
+hero_kpi_labs: "Labs guiados"
+hero_kpi_levels: "Níveis"
+hero_kpi_oss: "Open-source"
+
+# Secção de laboratórios (início)
+labs_eyebrow: "Percurso recomendado"
+labs_heading: "Laboratórios em destaque"
+labs_desc: "Começa pelos fundamentos e expande para o percurso completo quando estiveres pronto."
+labs_open: "Abrir laboratório"
+labs_show_all: "Ver todos os Labs"
+labs_show_less: "Ver apenas 3 Labs"
+
+# Faixa de funcionalidades
+feat_aria: "Áreas de aprendizagem"
+feat_discovery: "Descoberta"
+feat_discovery_desc: "Inventário e mapeamento de ativos OT."
+feat_protection: "Proteção"
+feat_protection_desc: "Segmentação, firewall e menor privilégio."
+feat_detection: "Deteção"
+feat_detection_desc: "Logs, monitorização e anomalias."
+feat_response: "Resposta"
+feat_response_desc: "Backup, incidentes, hardening e auditoria."
+
+# Secção porquê usar
+why_eyebrow: "Porquê usar"
+why_heading: "Feito para treino técnico com contexto real"
+why_card1_title: "Aprendizagem prática"
+why_card1_desc: "Exercícios progressivos com objetivos, passos e resultado esperado."
+why_card2_title: "Segurança OT/ICS"
+why_card2_desc: "Foco em redes industriais, protocolos, segmentação e defesa operacional."
+why_card3_title: "Documentação clara"
+why_card3_desc: "Guias rápidos para preparar ambiente, executar labs e contribuir."
+why_card4_title: "IT/OT sem ruído"
+why_card4_desc: "Conceitos explicados com linguagem direta e aplicável a infraestruturas críticas."
+why_card5_title: "Open-source"
+why_card5_desc: "Projeto aberto para uso académico, evolução comunitária e melhoria contínua."
+why_card6_title: "Pronto para GitHub Pages"
+why_card6_desc: "Estrutura Hugo simples, rápida, responsiva e fácil de manter com CI/CD."
+
+# Secção setup
+setup_eyebrow: "Setup rápido"
+setup_heading: "Começa com poucos comandos"
+setup_desc: "Clona o repositório"
+setup_note: "Depois abre http://localhost:1313 no navegador."
+
+# Timeline
+timeline_eyebrow: "Roadmap de aprendizagem"
+timeline_heading: "Estrutura dos laboratórios"
+timeline1_title: "Fundamentos"
+timeline1_desc: "Descoberta OT, Modbus e PLC."
+timeline2_title: "Proteção"
+timeline2_desc: "Rede industrial, segmentação, firewall e monitorização."
+timeline3_title: "Operação segura"
+timeline3_desc: "Logs, acessos, backups, resposta, hardening e auditoria."
+
+# Página de lista de laboratórios
+labs_list_eyebrow: "Laboratórios Práticos"
+labs_list_heading: "Explorar Laboratórios"
+labs_list_subtitle: "Série progressiva para aprender cibersegurança em sistemas industriais OT/ICS."
+labs_list_tip: "Recomendação: segue a ordem numérica. Cada laboratório inclui objetivo, passos e resultado esperado."
+labs_open_short: "Abrir Lab →"
+labs_available: "laboratórios disponíveis"
+
+# Página individual
+reading_time: "min de leitura"
+toc_title: "Nesta página"
+related_title: "Conteúdo Relacionado"
+read_more: "Ler mais →"
+date_format: "02/01/2006"
+
+# Expandir/Recolher
+expand_text: "Expandir texto"
+collapse_text: "Recolher texto"
+expand_labs: "Ver todos os Labs"
+collapse_labs: "Ver apenas 3 Labs"
+
+# Idioma
+lang_switch_label: "Mudar idioma"
+lang_switch_title: "Switch to English"
+
+# Secção Learning Path / Skill Tree
+lp_eyebrow: "Roteiro"
+lp_heading: "Roteiro de Aprendizagem"
+lp_desc: "Segue o percurso recomendado por níveis. Podes também ver os labs individualmente."
+lp_level: "Nível"
+lp_open_level: "Ver nível"
+lp_level0_name: "Nível 0 — Fundamentos"
+lp_level0_sub: "Pré-requisitos e ferramentas"
+lp_level0_link: "Ver conteúdo do Nível 0"
+lp_level1_name: "Nível 1 — Observação e descoberta"
+lp_level1_link: "Ver conteúdo do Nível 1"
+lp_level2_name: "Nível 2 — Análise de protocolos"
+lp_level2_link: "Ver conteúdo do Nível 2"
+lp_level3_name: "Nível 3 — Técnicas ofensivas/defensivas"
+lp_level3_link: "Ver conteúdo do Nível 3"
+lp_level4_name: "Nível 4 — Integração e investigação avançada"
+lp_level4_link: "Ver conteúdo do Nível 4"
+lp_cta_text: "Preferes ver os labs individuais?"
+lp_cta_browse: "Ver todos os labs"
+lp_cta_contribute: "Contribuir com um lab"
+level_no_labs: "Ainda não existem laboratórios associados a este nível."
+levels_available: "níveis disponíveis"
+levels_tip: "Recomendação: segue a ordem numérica. Cada nível prepara-te para os laboratórios seguintes."
+lp_spotlight_title: "Começa pelo básico e segue a ordem recomendada."
+lp_spotlight_labs_kicker: "Labs"
+lp_spotlight_labs_title: "Aprende numa sequência, pratica logo a seguir."
+lp_spotlight_labs_desc: "Cada nível aponta para exercícios e labs relacionados, para não ficares só na teoria."
+
+lp_level0_item1: "Redes, IP, ARP e noções essenciais."
+lp_level0_item2: "Ferramentas base: ping, traceroute, tcpdump."
+lp_level0_item3: "Primeiros labs para criar confiança."
+
+lp_level1_item1: "Descobrir hosts e mapear serviços."
+lp_level1_item2: "Exercitar nmap, ARP e observação local."
+lp_level1_item3: "Aplicar descoberta em rede controlada."
+
+lp_level2_item1: "Ler pacotes e reconhecer padrões de tráfego."
+lp_level2_item2: "Explorar tcpdump, tshark e Wireshark."
+lp_level2_item3: "Entender handshake, flags e payloads."
+
+lp_level3_item1: "Praticar em ambiente isolado e seguro."
+lp_level3_item2: "Ver impacto de hardening e contenção."
+lp_level3_item3: "Ligar exploração controlada a defesa."
+
+lp_level4_item1: "Correlacionar eventos e preparar investigação."
+lp_level4_item2: "Introdução a automação, logs e forense de rede."
+lp_level4_item3: "Fechar o ciclo com análise avançada."
+
+lp_show_all_levels: "Ver todos os Níveis"
+lp_show_less_levels: "Ver apenas 3 Níveis"
+# Bloco Start Here
+start_here_eyebrow: "Novo em OT/ICS Security?"
+start_here_title: "Não sabes por onde começar?"
+start_here_desc: "Começa pelo Lab 01 — sem experiência prévia em OT. Guia-te pela descoberta de dispositivos numa rede industrial de raiz."
+start_here_cta: "Começar pelo Lab 01"
+start_here_level: "ou explorar o Nível 0 →"
+
+# Metadados dos cards de lab
+lab_time_label: "Tempo estimado"
+lab_difficulty_label: "Dificuldade"
+lab_github_label: "Fonte"
+lab_area_discovery: "Descoberta"
+lab_area_protection: "Proteção"
+lab_area_detection: "Deteção"
+lab_area_response: "Resposta"
+
+# Secção CTA open source
+oss_eyebrow: "Open Source"
+oss_heading: "Ajuda a construir o OTLAB"
+oss_desc: "O OTLAB é gratuito e aberto. Podes adicionar labs, corrigir documentação, traduzir conteúdo ou melhorar ferramentas. Cada contribuição conta."
+oss_github: "Ver no GitHub"
+oss_guide: "Guia de contribuição"

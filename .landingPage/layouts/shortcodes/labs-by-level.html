@@ -1,0 +1,35 @@
+{{ $targetLevel := int (.Get "level") }}
+{{ $labsSection := site.GetPage "section" "labs" }}
+
+{{ if $labsSection }}
+  {{ $labs := where $labsSection.Pages "Params.level" $targetLevel }}
+  {{ $labs = sort $labs "Title" "asc" }}
+
+  {{ if gt (len $labs) 0 }}
+    <div class="level-labs-list">
+      {{ range $labs }}
+        <article class="level-lab-card">
+          <a href="{{ .RelPermalink }}">
+            {{ .Title }}
+          </a>
+
+          {{ with .Params.description }}
+            <p>{{ . }}</p>
+          {{ end }}
+
+          <div class="level-lab-meta">
+            {{ with .Params.difficulty }}
+              <span>{{ . }}</span>
+            {{ end }}
+
+            {{ with .Params.estimated_time }}
+              <span>{{ . }}</span>
+            {{ end }}
+          </div>
+        </article>
+      {{ end }}
+    </div>
+  {{ else }}
+    <p class="level-labs-empty">{{ i18n "level_no_labs" }}</p>
+  {{ end }}
+{{ end }}

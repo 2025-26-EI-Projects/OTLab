@@ -1,0 +1,10 @@
+{{ $file := .Get "file" }}{{ $dir := .Page.File.Dir }}{{ $path := printf "%s%s" $dir $file }}
+
+<details class="collapsible-section" style="margin: 1.5rem 0; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff;">
+  <summary style="padding: 1rem; background: #f8f9fa; cursor: pointer; font-size: 1rem; font-weight: 600; user-select: none; list-style: none; outline: none; color: #333;">
+    {{ .Get "title" }}
+  </summary>
+  <div style="padding: 1rem; background: #fafbfc; border-top: 1px solid #ddd;">
+    <pre style="margin: 0; background: #0d1117; color: #c9d1d9; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5; font-family: monospace;"><code>{{ if fileExists $path }}{{ readFile $path }}{{ else }}File not found: {{ $path }}{{ end }}</code></pre>
+  </div>
+</details>

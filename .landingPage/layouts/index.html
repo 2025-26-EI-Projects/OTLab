@@ -1,0 +1,370 @@
+{{ define "main" }}
+
+<section class="hero hero-modern">
+  <div class="hero-copy">
+    <span class="eyebrow">{{ i18n "hero_eyebrow" }}</span>
+    <h1 class="hero-title">
+      {{ i18n "hero_title" }}
+    </h1>
+    <p class="hero-subtitle">
+      {{ i18n "hero_subtitle" }}
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn btn-primary" href='{{ "labs/" | relLangURL }}'>{{ i18n "hero_cta_labs" }}</a>
+      <a class="btn btn-secondary" href='{{ "docs/" | relLangURL }}'>{{ i18n "hero_cta_docs" }}</a>
+
+      <a class="btn btn-ghost" href="https://github.com/2025-26-EI-Projects/OTLab" target="_blank"
+        rel="noopener noreferrer">GitHub</a>
+    </div>
+  </div>
+
+  <div class="hero-panel" aria-label="{{ i18n "hero_panel_title" }}">
+    <div class="terminal-section">
+      <div class="terminal-header">{{ i18n "hero_panel_title" }}</div>
+      <div class="terminal-card">
+        <div class="terminal-dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <pre><code>https://github.com/2025-26-EI-Projects/OTLab</code></pre>
+      </div>
+    </div>
+    <div class="kpi-grid compact">
+      <div class="kpi">
+        <span class="kpi-value">13</span><span class="kpi-label">{{ i18n "hero_kpi_labs" }}</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-value">3</span><span class="kpi-label">{{ i18n "hero_kpi_levels" }}</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-value">100%</span><span class="kpi-label">{{ i18n "hero_kpi_oss" }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section feature-strip" aria-label="{{ i18n "feat_aria" }}">
+  <article>
+    <strong>{{ i18n "feat_discovery" }}</strong><span>{{ i18n "feat_discovery_desc" }}</span>
+  </article>
+  <article>
+    <strong>{{ i18n "feat_protection" }}</strong><span>{{ i18n "feat_protection_desc" }}</span>
+  </article>
+  <article>
+    <strong>{{ i18n "feat_detection" }}</strong><span>{{ i18n "feat_detection_desc" }}</span>
+  </article>
+  <article>
+    <strong>{{ i18n "feat_response" }}</strong><span>{{ i18n "feat_response_desc" }}</span>
+  </article>
+</section>
+
+{{/* Start Here callout */}}
+<section class="section start-here-section">
+  <div class="start-here-callout">
+    <div class="start-here-text">
+      <span class="eyebrow">{{ i18n "start_here_eyebrow" }}</span>
+      <h2>{{ i18n "start_here_title" }}</h2>
+      <p>{{ i18n "start_here_desc" }}</p>
+    </div>
+    <div class="start-here-actions">
+      {{ $lab1 := site.GetPage "/labs/OTLab01" }}
+      {{ with $lab1 }}
+      <a class="btn btn-primary" href="{{ .RelPermalink }}">{{ i18n "start_here_cta" }}</a>
+      {{ else }}
+      <a class="btn btn-primary" href='{{ "labs/" | relLangURL }}'>{{ i18n "start_here_cta" }}</a>
+      {{ end }}
+      <a class="start-here-level-link" href='{{ "learning/level-0/" | relLangURL }}'>{{ i18n "start_here_level" }}</a>
+    </div>
+  </div>
+</section>
+
+{{/* learning-path will be inserted after we compute $labs */}}
+
+{{ $labsSection := site.GetPage "section" "labs" }} {{ with $labsSection }} {{
+$labsIndexed := slice }} {{ range .Pages }} {{ $num := 999 }} {{ with .File }}
+{{ $folderName := path.Base .Dir }} {{ if hasPrefix $folderName "OTLab" }} {{
+$numStr := replace $folderName "OTLab" "" }} {{ $numStr = strings.TrimLeft "0"
+$numStr }} {{ if eq $numStr "" }}{{ $numStr = "0" }}{{ end }} {{ $num = int
+$numStr }} {{ end }} {{ end }} {{ $labsIndexed = $labsIndexed | append (dict
+"num" $num "page" .) }} {{ end }} {{ $labs := sort $labsIndexed "num" "asc" }}
+<section class="section learning-path roadmap-section">
+  <div class="section-heading roadmap-heading">
+    <span class="eyebrow">{{ i18n "lp_eyebrow" }}</span>
+    <h2>{{ i18n "lp_heading" }}</h2>
+    <p>{{ i18n "lp_desc" }}</p>
+  </div>
+
+  <div class="roadmap-spotlight">
+    <article class="roadmap-spotlight-card roadmap-spotlight-primary">
+      <span class="roadmap-kicker">{{ i18n "lp_level0_name" }}</span>
+      <h3>{{ i18n "lp_spotlight_title" }}</h3>
+      <p>{{ with site.GetPage "/learning/level-0" }}{{ .Description }}{{ end }}</p>
+      {{ with site.GetPage "/learning/level-0" }}
+      <a class="btn btn-primary" href="{{ .RelPermalink }}">{{ i18n "lp_level0_link" }}</a>
+      {{ end }}
+    </article>
+
+    <article class="roadmap-spotlight-card">
+      <span class="roadmap-kicker">{{ i18n "lp_spotlight_labs_kicker" }}</span>
+      <h3>{{ i18n "lp_spotlight_labs_title" }}</h3>
+      <p>{{ i18n "lp_spotlight_labs_desc" }}</p>
+      <a class="btn btn-secondary" href='{{ "labs/" | relLangURL }}'>{{ i18n "lp_cta_browse" }}</a>
+    </article>
+  </div>
+
+  <div class="roadmap-home-shell">
+    <div class="roadmap-grid is-collapsed" id="roadmap-home-grid">
+      {{ $level0 := site.GetPage "/learning/level-0" }}
+      {{ $level1 := site.GetPage "/learning/level-1" }}
+      {{ $level2 := site.GetPage "/learning/level-2" }}
+      {{ $level3 := site.GetPage "/learning/level-3" }}
+      {{ $level4 := site.GetPage "/learning/level-4" }}
+
+      <article class="roadmap-card roadmap-card-start">
+        <div class="roadmap-card-head">
+          <span class="roadmap-step">0</span>
+          <div>
+            <h3>{{ i18n "lp_level0_name" }}</h3>
+            <p>{{ with $level0 }}{{ .Description }}{{ end }}</p>
+          </div>
+        </div>
+        <ul>
+          <li>{{ i18n "lp_level0_item1" }}</li>
+          <li>{{ i18n "lp_level0_item2" }}</li>
+          <li>{{ i18n "lp_level0_item3" }}</li>
+        </ul>
+        <div class="roadmap-card-actions">
+          {{ with $level0 }}<a class="btn btn-secondary btn-sm" href="{{ .RelPermalink }}">{{ i18n "lp_level0_link" }}</a>{{ end }}
+        </div>
+      </article>
+
+      <article class="roadmap-card">
+        <div class="roadmap-card-head">
+          <span class="roadmap-step">1</span>
+          <div>
+            <h3>{{ i18n "lp_level1_name" }}</h3>
+            <p>{{ with $level1 }}{{ .Description }}{{ end }}</p>
+          </div>
+        </div>
+        <ul>
+          <li>{{ i18n "lp_level1_item1" }}</li>
+          <li>{{ i18n "lp_level1_item2" }}</li>
+          <li>{{ i18n "lp_level1_item3" }}</li>
+        </ul>
+        <div class="roadmap-card-actions">
+          {{ with $level1 }}<a class="btn btn-secondary btn-sm" href="{{ .RelPermalink }}">{{ i18n "lp_level1_link" }}</a>{{ end }}
+        </div>
+      </article>
+
+      <article class="roadmap-card">
+        <div class="roadmap-card-head">
+          <span class="roadmap-step">2</span>
+          <div>
+            <h3>{{ i18n "lp_level2_name" }}</h3>
+            <p>{{ with $level2 }}{{ .Description }}{{ end }}</p>
+          </div>
+        </div>
+        <ul>
+          <li>{{ i18n "lp_level2_item1" }}</li>
+          <li>{{ i18n "lp_level2_item2" }}</li>
+          <li>{{ i18n "lp_level2_item3" }}</li>
+        </ul>
+        <div class="roadmap-card-actions">
+          {{ with $level2 }}<a class="btn btn-secondary btn-sm" href="{{ .RelPermalink }}">{{ i18n "lp_level2_link" }}</a>{{ end }}
+        </div>
+      </article>
+
+      <article class="roadmap-card roadmap-card-extra">
+        <div class="roadmap-card-head">
+          <span class="roadmap-step">3</span>
+          <div>
+            <h3>{{ i18n "lp_level3_name" }}</h3>
+            <p>{{ with $level3 }}{{ .Description }}{{ end }}</p>
+          </div>
+        </div>
+        <ul>
+          <li>{{ i18n "lp_level3_item1" }}</li>
+          <li>{{ i18n "lp_level3_item2" }}</li>
+          <li>{{ i18n "lp_level3_item3" }}</li>
+        </ul>
+        <div class="roadmap-card-actions">
+          {{ with $level3 }}<a class="btn btn-secondary btn-sm" href="{{ .RelPermalink }}">{{ i18n "lp_level3_link" }}</a>{{ end }}
+        </div>
+      </article>
+
+      <article class="roadmap-card roadmap-card-advanced roadmap-card-extra">
+        <div class="roadmap-card-head">
+          <span class="roadmap-step">4</span>
+          <div>
+            <h3>{{ i18n "lp_level4_name" }}</h3>
+            <p>{{ with $level4 }}{{ .Description }}{{ end }}</p>
+          </div>
+        </div>
+        <ul>
+          <li>{{ i18n "lp_level4_item1" }}</li>
+          <li>{{ i18n "lp_level4_item2" }}</li>
+          <li>{{ i18n "lp_level4_item3" }}</li>
+        </ul>
+        <div class="roadmap-card-actions">
+          {{ with $level4 }}<a class="btn btn-secondary btn-sm" href="{{ .RelPermalink }}">{{ i18n "lp_level4_link" }}</a>{{ end }}
+        </div>
+      </article>
+    </div>
+
+    <div class="roadmap-toggle-wrap">
+      <button
+        class="labs-toggle-btn"
+        type="button"
+        data-labs-target="roadmap-home-grid"
+        data-expand-text="{{ i18n "lp_show_all_levels" }}"
+        data-collapse-text="{{ i18n "lp_show_less_levels" }}"
+        aria-expanded="false">
+        {{ i18n "lp_show_all_levels" }}
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="section labs-home">
+  <div class="section-heading">
+    <span class="eyebrow">{{ i18n "labs_eyebrow" }}</span>
+    <h2>{{ i18n "labs_heading" }}</h2>
+    <p>
+      {{ i18n "labs_desc" }}
+    </p>
+  </div>
+
+  <div class="labs-home-shell">
+    <div class="grid labs-grid{{ if gt (len $labs) 3 }} is-collapsed{{ end }}" id="labs-home-grid">
+      {{ range $index, $item := $labs }} {{ $lab := $item.page }}
+      {{ $folderName := "" }}{{ with $lab.File }}{{ $folderName = path.Base .Dir }}{{ end }}
+      {{ $githubURL := printf "%s/tree/main/%s" site.Params.github $folderName }}      <article class="card lab-card{{ if ge $index 3 }} lab-card-extra{{ end }}">
+        <div class="lab-card-header">
+          <span class="lab-chip">Lab {{ $item.num }}</span>
+          {{ with $lab.Params.area }}
+          <span class="lab-area-badge lab-area-{{ . }}">{{ i18n (printf "lab_area_%s" .) }}</span>
+          {{ end }}
+        </div>
+        <h3>{{ $lab.Title }}</h3>
+        <p>
+          {{ with $lab.Params.description }}{{ . }}{{ else }}{{ $lab.Summary |
+          plainify | truncate 120 }}{{ end }}
+        </p>
+        <div class="lab-meta">
+          {{ with $lab.Params.estimated_time }}<span class="lab-meta-item">⏱ {{ . }}</span>{{ end }}
+          {{ with $lab.Params.difficulty }}<span class="lab-meta-item">{{ . }}</span>{{ end }}
+        </div>
+        <div class="lab-card-actions">
+          <a class="btn btn-secondary" href="{{ $lab.RelPermalink }}">{{ i18n "labs_open" }}</a>
+          {{ if $folderName }}<a class="btn-icon-link" href="{{ $githubURL }}" target="_blank" rel="noopener noreferrer"
+            title="{{ i18n "lab_github_label" }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+          </a>{{ end }}
+        </div>
+      </article>
+      {{ end }}
+    </div>
+
+    {{ if gt (len $labs) 3 }}
+    <button
+  class="labs-toggle-btn"
+  type="button"
+  data-labs-target="labs-home-grid"
+  data-expand-text="{{ i18n "labs_show_all" }}"
+  data-collapse-text="{{ i18n "labs_show_less" }}"
+  aria-expanded="false">
+      {{ i18n "labs_show_all" }}
+    </button>
+    {{ end }}
+  </div>
+</section>
+{{ end }}
+
+<section class="section oss-cta-section">
+  <div class="oss-cta">
+    <div class="oss-cta-text">
+      <span class="eyebrow">{{ i18n "oss_eyebrow" }}</span>
+      <h2>{{ i18n "oss_heading" }}</h2>
+      <p>{{ i18n "oss_desc" }}</p>
+    </div>
+    <div class="oss-cta-actions">
+      <a class="btn btn-primary" href="{{ site.Params.github }}" target="_blank" rel="noopener noreferrer">{{ i18n
+        "oss_github" }}</a>
+      <a class="btn btn-secondary"
+         href="{{ site.Params.github }}/blob/main/.landingPage/CONTRIBUTING.md"
+         target="_blank"
+         rel="noopener noreferrer">
+         {{ i18n "oss_guide" }}
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-heading">
+    <span class="eyebrow">{{ i18n "why_eyebrow" }}</span>
+    <h2>{{ i18n "why_heading" }}</h2>
+  </div>
+  <div class="grid">
+    <div class="card icon-card">
+      <span>🎓</span>
+      <h3>{{ i18n "why_card1_title" }}</h3>
+      <p>{{ i18n "why_card1_desc" }}</p>
+    </div>
+    <div class="card icon-card">
+      <span>🛡️</span>
+      <h3>{{ i18n "why_card2_title" }}</h3>
+      <p>{{ i18n "why_card2_desc" }}</p>
+    </div>
+    <div class="card icon-card">
+      <span>📚</span>
+      <h3>{{ i18n "why_card3_title" }}</h3>
+      <p>{{ i18n "why_card3_desc" }}</p>
+    </div>
+    <div class="card icon-card">
+      <span>🔗</span>
+      <h3>{{ i18n "why_card4_title" }}</h3>
+      <p>{{ i18n "why_card4_desc" }}</p>
+    </div>
+    <div class="card icon-card">
+      <span>💡</span>
+      <h3>{{ i18n "why_card5_title" }}</h3>
+      <p>{{ i18n "why_card5_desc" }}</p>
+    </div>
+    <div class="card icon-card">
+      <span>🚀</span>
+      <h3>{{ i18n "why_card6_title" }}</h3>
+      <p>{{ i18n "why_card6_desc" }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="section timeline-section">
+  <div class="section-heading">
+    <span class="eyebrow">{{ i18n "timeline_eyebrow" }}</span>
+    <h2>{{ i18n "timeline_heading" }}</h2>
+  </div>
+  <div class="timeline">
+    <article>
+      <span>01</span>
+      <h3>{{ i18n "timeline1_title" }}</h3>
+      <p>{{ i18n "timeline1_desc" }}</p>
+    </article>
+    <article>
+      <span>02</span>
+      <h3>{{ i18n "timeline2_title" }}</h3>
+      <p>{{ i18n "timeline2_desc" }}</p>
+    </article>
+    <article>
+      <span>03</span>
+      <h3>{{ i18n "timeline3_title" }}</h3>
+      <p>{{ i18n "timeline3_desc" }}</p>
+    </article>
+  </div>
+</section>
+
+{{ end }}

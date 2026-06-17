@@ -1,5 +1,13 @@
-# OTLab01
-
+﻿---
+title: "Lab 01 - Deteção básica de dispositivos OT-ICS"
+description: "Descoberta de dispositivos OT-ICS através de escaneamento de rede, enumeração de serviços e análise de protocolos industriais."
+categories: ["Laboratórios"]
+difficulty: "Intermédio"
+tags: ["OT", "ICS", "PLC", "Network Discovery", "Nmap", "Masscan", "Netdiscover", "SNMP", "Conpot", "Shodan", "FOFA", "Google Dorking"]
+estimated_time: "60 min"
+level: 0
+area: "discovery"
+---
 ![](https://raw.githubusercontent.com/substationworm/OTLab/main/OTLab-SecondHeader.png "OTLab01")
 
 [![Curriculum Lattes](https://img.shields.io/badge/Lattes-white)](http://lattes.cnpq.br/8846358506427099)
@@ -10,31 +18,34 @@
 [![substationworm](https://img.shields.io/badge/substationworm-black)](https://github.com/substationworm)
 [![LFFreitasGutierres](https://img.shields.io/badge/LFFreitasGutierres-white)](https://github.com/LFFreitas-Gutierres)
 
-## 📝 Tasks
+## 📝 Tarefas
 
 > [!WARNING]
-> When using specialized search engines or Google dorks to identify Internet-exposed OT devices, **do not interact with or attempt to access any real systems**. The tasks in this document are strictly educational, observational, and non-intrusive, and must fully comply with ethical and legal standards.
+> Ao utilizar motores de busca especializados ou Google dorks para identificar dispositivos OT expostos na Internet, **não interajas nem tentes aceder a sistemas reais**. As tarefas deste documento são estritamente educativas, observacionais e não intrusivas, e devem cumprir integralmente os padrões éticos e legais.
 
-- [ ] Verify the IP address of the `otlab-student` workstation.
-- [ ] Determine the subnet range of the network where the `otlab-student` workstation is deployed.
-- [ ] Discover the IP address, MAC address, and vendor information of other active hosts within the network.
-    - *Hint: It is a PLC*.
-- [ ] Identify open ports and available services on the OT-ICS host over both TCP and UDP protocols.
-- [ ] Determine the proprietary industrial communication protocol used by the PLC.
-- [ ] Retrieve additional system information via the SNMP protocol.
-- [ ] Identify the total number of publicly accessible OT-ICS devices using the same proprietary industrial protocol as `conpot-plc` through a specialized search engine such as [Shodan](https://www.shodan.io/) or [FOFA](https://en.fofa.info/).
-- [ ] Locate a publicly exposed OT device using the same industrial protocol as `conpot-plc` through Google dorking.
+- 1️⃣ Verifica o endereço IP da estação de trabalho `otlab-student`.
+- 2️⃣ Determina o intervalo da subrede da rede onde a estação `otlab-student` está implementada.
+- 3️⃣ Descobre o endereço IP, o endereço MAC e a informação do fabricante de outros hosts ativos dentro da rede.  
+  - *Dica: é um PLC*.
+- 4️⃣ Identifica as portas abertas e os serviços disponíveis no host OT-ICS tanto em TCP como em UDP.
+- 5️⃣ Determina o protocolo de comunicação industrial proprietário utilizado pelo PLC.
+- 6️⃣ Obtém informação adicional do sistema através do protocolo SNMP.
+- 7️⃣ Identifica o número total de dispositivos OT-ICS de acesso público que usam o mesmo protocolo industrial proprietário que `conpot-plc` através de um motor de busca especializado como [Shodan](https://www.shodan.io/) ou [FOFA](https://en.fofa.info/).
+- 8️⃣ Localiza um dispositivo OT exposto publicamente que use o mesmo protocolo industrial que `conpot-plc` através de Google dorking.
 
-> [!NOTE]
-> The `conpot-plc` is based on [Conpot](http://conpot.org/), which remaps standard protocol and service ports to non-privileged ports. Refer to the [link](https://github.com/substationworm/OTLab/blob/main/OTLab01/ConpotDefaultPorts.md) for a list of some default and remapped ports.
+#### Nota: O `conpot-plc` baseia-se em [Conpot](http://conpot.org/), que remapeia portas padrão de protocolos e serviços para portas não privilegiadas. Consulta o [link](https://github.com/substationworm/OTLab/blob/main/OTLab01/ConpotDefaultPorts.md) para uma lista de algumas portas padrão e remapeadas.
 
-## 🔖 Nomenclature
+## 🛠️ Ferramentas
 
-- ICS: Industrial control system.
-- IP: Internet protocol.
-- MAC: Media access control.
-- OT: Operational technology.
-- PLC: Programmable logic controller.
-- SNMP: Simple network management protocol.
-- TCP: Transmission control protocol.
-- UDP: User datagram protocol.
+- As seguintes ferramentas estão disponíveis na estação de trabalho `otlab-student` para completar o OTLab 1: `ifconfig`, `masscan`, `netdiscover`, `nmap` e `snmpwalk`.
+
+## 🔖 Nomenclatura
+
+- ICS: sistema de controlo industrial.
+- IP: protocolo de Internet.
+- MAC: controlo de acesso ao meio.
+- OT: tecnologia operacional.
+- PLC: controlador lógico programável.
+- SNMP: protocolo simples de gestão de rede.
+- TCP: protocolo de controlo de transmissão.
+- UDP: protocolo de datagramas de utilizador.

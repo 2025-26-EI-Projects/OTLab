@@ -1,6 +1,15 @@
-# OTLab06
+﻿---
+title: "Lab 06 - Protocolos industriais e exposição de interface web"
+description: "Descoberta de dispositivos industriais através de enumeração de subredes, análise de serviços, inspeção de interfaces web e recolha de informação SNMP."
+categories: ["Laboratórios"]
+difficulty: "Intermédio"
+tags: ["OT", "ICS", "Industrial Protocols", "Web Interface", "SNMP", "OID", "Conpot", "Plcscan", "Tcpdump", "Network Discovery", "Nmap", "Masscan", "Netdiscover"]
+estimated_time: "75 min"
+level: 3
+area: "detection"
+---
 
-![](https://raw.githubusercontent.com/substationworm/OTLab/main/OTLab-SecondHeader.png "OTLab03")
+![](https://raw.githubusercontent.com/substationworm/OTLab/main/OTLab-SecondHeader.png "OTLab06")
 
 [![Curriculum Lattes](https://img.shields.io/badge/Lattes-white)](http://lattes.cnpq.br/8846358506427099)
 [![ORCID](https://img.shields.io/badge/ORCID-grey)](https://orcid.org/0000-0002-6254-7306)
@@ -10,23 +19,29 @@
 [![substationworm](https://img.shields.io/badge/substationworm-black)](https://github.com/substationworm)
 [![LFFreitasGutierres](https://img.shields.io/badge/LFFreitasGutierres-white)](https://github.com/LFFreitas-Gutierres)
 
-## 📝 Tasks
+## 📝 Tarefas
 
-- [ ] 1️⃣ Verify the IP address of the `otlab-student` workstation. `OTLab06{XXX.XXX.X2.XXX}`
-- [ ] 2️⃣ Discover the IP addresses of the active hosts within the same subnet as the answer above. `OTLab06{XXX.XXX.XX.2X, XXX.XXX.XX.XX, XXX.XXX.XX.XXX}`
-- [ ] 3️⃣ Determine which ports are open on the IP address in the format `XXX.XXX.XX.2X`, identified in the previous question. `OTLab06{XXXX, XXXX, XXXX, XXXXX, XXXXX}`
-- [ ] 4️⃣ Identify the MAC address of the active host corresponding to the IP address in the format `XXX.XXX.XX.2X` from Question 2. `OTLab06{XX:XX:XX:XX:XX:XX}`
-- [ ] 5️⃣ Locate the hidden flag within a web interface exposed on the active host mentioned in Question 3. 
-    - *Use `curl`. No further hints provided.*
-- [ ] 6️⃣ Which port is open on the IP address in the format `XXX.XXX.XX.XX` from Question 2? `OTLab06{XXX}`
-- [ ] 7️⃣ Determine the version of the basic firmware emulated on the active host referenced in the previous question. `OTLab06{X.X.X.X}`
-- [ ] 8️⃣ Two devices on distinct networks configured in bridge mode are communicating. What is the MAC address of the sole active host on the other bridged segment? `OTLab06{XX:XX:XX:XX:XX:XX}`
-- [ ] 9️⃣ Two devices on distinct networks configured in bridge mode are communicating. What is the transmitted message? `OTLab06{Xxxx xxx Xxxxxxxxxxx xx Xxxxxxxx xxx Xxxxxxxxxx xxx XX-XXX!}`
-- [ ] 🔟 Which OID can be extracted via the SNMP service from an active host operating with an industrial communication protocol? `OTLab06{(XXXX) X:XX:XX.XX}`
+- 1️⃣ Verifica o endereço IP da estação `otlab-student`. `OTLab06{XXX.XXX.X2.XXX}`
+- 2️⃣ Descobre os endereços IP dos hosts ativos dentro da mesma subrede da resposta anterior. `OTLab06{XXX.XXX.XX.2X, XXX.XXX.XX.XX, XXX.XXX.XX.XXX}`
+- 3️⃣ Determina quais as portas abertas no endereço IP no formato `XXX.XXX.XX.2X`, identificado na pergunta anterior. `OTLab06{XXXX, XXXX, XXXX, XXXXX, XXXXX}`
+- 4️⃣ Identifica o endereço MAC do host ativo correspondente ao endereço IP no formato `XXX.XXX.XX.2X` da pergunta 2. `OTLab06{XX:XX:XX:XX:XX:XX}`
+- 5️⃣ Localiza a flag escondida numa interface web exposta no host ativo mencionado na pergunta 3.
+  - _Usa `curl`. Não são fornecidas mais pistas._
+- 6️⃣ Que porta está aberta no endereço IP no formato `XXX.XXX.XX.XX` da pergunta 2? `OTLab06{XXX}`
+- 7️⃣ Determina a versão do firmware base emulado no host ativo referenciado na pergunta anterior. `OTLab06{X.X.X.X}`
+- 8️⃣ Dois dispositivos em redes distintas configuradas em modo bridge estão a comunicar. Qual é o endereço MAC do único host ativo no outro segmento em bridge? `OTLab06{XX:XX:XX:XX:XX:XX}`
+- 9️⃣ Dois dispositivos em redes distintas configuradas em modo bridge estão a comunicar. Qual é a mensagem transmitida? `OTLab06{Xxxx xxx Xxxxxxxxxxx xx Xxxxxxxx xxx Xxxxxxxxxx xxx XX-XXX!}`
+- 🔟 Qual OID pode ser extraído através do serviço SNMP a partir de um host ativo que opera com um protocolo de comunicação industrial? `OTLab06{(XXXX) X:XX:XX.XX}`
 
-## 🔖 Nomenclature
+#### Nota: O `plc03-scada` baseia-se em [Conpot](http://conpot.org/), que remapeia portas padrão de protocolos e serviços para portas não privilegiadas. Consulta o [link](https://github.com/substationworm/OTLab/blob/main/OTLab01/ConpotDefaultPorts.md) para uma lista de algumas portas padrão e remapeadas. A ferramenta `opt/plcscan/plcscan.py` ([meeas/plcscan](https://github.com/meeas/plcscan)) deve ser executada utilizando `python2`.
 
-- IP: Internet protocol.
-- MAC: Media access control.
-- OID: Object identifier.
-- SNMP: Simple network management protocol.
+## 🛠️ Ferramentas
+
+- As seguintes ferramentas estão disponíveis na estação de trabalho `otlab-student` para completar o OTLab 06: `ifconfig`, `masscan`, `netdiscover`, `nmap`, `snmpwalk`, `plcscan` e `tcpdump`.
+
+## 🔖 Nomenclatura
+
+- IP: protocolo de Internet.
+- MAC: controlo de acesso ao meio.
+- OID: identificador de objeto.
+- SNMP: protocolo simples de gestão de rede.

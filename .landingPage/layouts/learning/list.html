@@ -1,0 +1,64 @@
+{{ define "main" }}
+
+<section class="hero hero-compact">
+  <span class="eyebrow">{{ i18n "lp_eyebrow" }}</span>
+  <h1>{{ .Title }}</h1>
+  <p>{{ .Description }}</p>
+</section>
+
+<section class="section labs-list-section">
+
+  <div class="labs-list-intro">
+    <h2>{{ len .Pages }} {{ i18n "levels_available" }}</h2>
+    <p>{{ i18n "levels_tip" }}</p>
+  </div>
+
+  {{ $levels := sort .Pages "Params.level" "asc" }}
+
+  <div class="labs-list">
+
+    {{ range $level := $levels }}
+
+      <article class="lab-item">
+
+        <div class="lab-number">
+          {{ printf "%02d" $level.Params.level }}
+        </div>
+
+        <div class="lab-content">
+
+          <h3>
+            <a href="{{ $level.RelPermalink }}">
+              {{ $level.Title }}
+            </a>
+          </h3>
+
+          <p class="lab-description">
+            {{ with $level.Params.description }}
+              {{ . }}
+            {{ else }}
+              {{ $level.Summary | plainify | truncate 150 }}
+            {{ end }}
+          </p>
+
+          <div class="lab-meta-group">
+            <span class="lab-meta">
+              {{ i18n "lp_heading" }}
+            </span>
+          </div>
+
+        </div>
+
+        <a href="{{ $level.RelPermalink }}" class="btn btn-primary">
+          {{ i18n "lp_open_level" }} →
+        </a>
+
+      </article>
+
+    {{ end }}
+
+  </div>
+
+</section>
+
+{{ end }}

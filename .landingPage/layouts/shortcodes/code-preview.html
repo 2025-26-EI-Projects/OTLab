@@ -1,0 +1,46 @@
+{{ $file := .Get "file" }}
+{{ $dir := .Page.File.Dir }}
+{{ $path := printf "%s%s" $dir $file }}
+
+{{ if fileExists $path }}
+
+{{ $content := readFile $path }}
+
+<details class="code-preview-section" style="margin: 2rem 0; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box;">
+
+  <summary style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f3f4f6 100%); cursor: pointer; font-size: 1rem; font-weight: 600; user-select: none; list-style: none; outline: none; color: #1f2937; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; transition: background 0.2s ease; width: 100%; box-sizing: border-box;">
+
+    <span>
+      {{ .Get "title" }}
+      <span style="font-size: 0.85rem; font-weight: 400; color: #6b7280;">
+        ({{ i18n "view_content" }})
+      </span>
+    </span>
+
+    <span style="font-size: 0.875rem; color: #6b7280; flex-shrink: 0;">
+      ▼
+    </span>
+
+  </summary>
+
+  <div style="padding: 1.5rem; background: #fafbfc; border-top: 1px solid #e5e7eb; max-width: 100%; box-sizing: border-box; overflow: hidden; width: 100%;">
+
+    <pre style="margin: 0; background: #0d1117; color: #c9d1d9; padding: 1rem; border-radius: 6px; font-size: 12px; line-height: 1.6; font-family: 'Courier New', Courier, monospace; max-height: 600px; overflow: auto; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; word-break: break-word; width: 100%; box-sizing: border-box; max-width: calc(100vw - 4rem);">
+
+      <code style="word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; word-break: break-word; display: block; width: 100%;">
+{{ $content }}
+      </code>
+
+    </pre>
+
+  </div>
+
+</details>
+
+{{ else }}
+
+<p style="color: red; padding: 1rem; background: #fee; border-radius: 6px;">
+  <strong>Erro:</strong> Ficheiro não encontrado: {{ $path }}
+</p>
+
+{{ end }}

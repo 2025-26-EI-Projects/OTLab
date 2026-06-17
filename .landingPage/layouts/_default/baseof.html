@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="{{ .Site.Language.Lang }}">
+
+<head>
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}" />
+
+  <meta name="theme-color" content="#0f172a" />
+
+  <meta property="og:title" content="{{ if .Title }}{{ .Title }} | {{ end }}{{ .Site.Title }}" />
+
+  <meta property="og:description"
+    content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}" />
+
+  <meta property="og:type" content="website" />
+
+  <title>
+    {{ if .Title }}{{ .Title }} | {{ end }}{{ .Site.Title }}
+  </title>
+
+  {{ range .Translations }}
+  <link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}" />
+  {{ end }}
+
+  <link rel="stylesheet" href="{{ "css/style.css" | relURL }}" />
+
+  <link rel="stylesheet" href="{{ "css/code-preview.css" | relURL }}" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>" />
+
+</head>
+
+<body>
+
+  <a class="skip-link" href="#conteudo">
+    {{ i18n "skip_to_content" }}
+  </a>
+
+  <header role="banner">
+
+    <div class="header-banner">
+      <img src="{{ "css/images/OTLab-SecondHeader.png" | relURL }}" alt="OTLab" loading="lazy" />
+    </div>
+
+    <div class="header-top">
+      <div class="container header-shell">
+
+        <div class="header-branding">
+          <a href="{{ "" | absLangURL }}" class="site-title">
+            {{ .Site.Title }}
+          </a>
+        </div>
+
+        <nav class="header-nav" role="navigation" aria-label="{{ i18n "nav_aria" }}">
+
+          <a class="nav-link" href="{{ "" | absLangURL }}">
+            {{ i18n "nav_home" }}
+          </a>
+
+          <a class="nav-link" href="{{ "learning/" | absLangURL }}">
+            {{ i18n "nav_learning" }}
+          </a>
+
+          <a class="nav-link" href="{{ "labs/" | absLangURL }}">
+            {{ i18n "nav_labs" }}
+          </a>
+
+          <a class="nav-link" href="{{ "docs/" | absLangURL }}">
+            {{ i18n "nav_docs" }}
+          </a>
+
+          <a class="nav-link" href="{{ "about/" | absLangURL }}">
+            {{ i18n "nav_about" }}
+          </a>
+
+          <div class="lang-dropdown">
+            <button class="nav-link lang-dropdown-btn" aria-haspopup="listbox" aria-expanded="false"
+              title="Selecionar idioma">
+              <span class="lang-flag {{ .Language.Lang }}"></span>
+
+              <span class="lang-label">
+                {{ upper .Language.Lang }}
+              </span>
+
+              <svg class="lang-chevron" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M3.5 6L8 11l4.5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </button>
+
+            <div class="lang-dropdown-menu">
+
+              {{ $currentLang := .Language.Lang }}
+
+              {{ if eq $currentLang "pt" }}
+              <a href="{{ .RelPermalink }}" class="lang-dropdown-item active">
+                <span class="lang-item-flag pt"></span>
+                <span class="lang-item-code">PT</span>
+                <span class="lang-item-text">Português</span>
+              </a>
+              {{ end }}
+
+              {{ if eq $currentLang "en" }}
+              <a href="{{ .RelPermalink }}" class="lang-dropdown-item active">
+                <span class="lang-item-flag en"></span>
+                <span class="lang-item-code">EN</span>
+                <span class="lang-item-text">English</span>
+              </a>
+              {{ end }}
+
+              {{ if eq $currentLang "es" }}
+              <a href="{{ .RelPermalink }}" class="lang-dropdown-item active">
+                <span class="lang-item-flag es"></span>
+                <span class="lang-item-code">ES</span>
+                <span class="lang-item-text">Español</span>
+              </a>
+              {{ end }}
+
+              {{ range .Translations }}
+              <a href="{{ .RelPermalink }}" class="lang-dropdown-item" lang="{{ .Language.Lang }}"
+                hreflang="{{ .Language.Lang }}">
+                <span class="lang-item-flag {{ .Language.Lang }}"></span>
+                <span class="lang-item-code">{{ upper .Language.Lang }}</span>
+
+                <span class="lang-item-text">
+                  {{ if eq .Language.Lang "pt" }}Português{{ end }}
+                  {{ if eq .Language.Lang "en" }}English{{ end }}
+                  {{ if eq .Language.Lang "es" }}Español{{ end }}
+                </span>
+              </a>
+              {{ end }}
+
+            </div>
+          </div>
+
+          <button id="theme-toggle" class="nav-link nav-theme-toggle" type="button" aria-pressed="false">
+            ☀️
+          </button>
+
+        </nav>
+      </div>
+    </div>
+
+    {{ if ne .Kind "home" }}
+
+    <div class="breadcrumb-wrapper">
+      <div class="container">
+      
+        <nav class="breadcrumb" aria-label="{{ i18n "breadcrumb_aria" }}">
+        
+          <a href="{{ "" | absLangURL }}">
+            {{ i18n "nav_home" }}
+          </a>
+        
+          {{ if eq .Kind "section" }}
+        
+            <span class="breadcrumb-current">
+              {{ .Title }}
+            </span>
+          
+          {{ else if eq .Kind "page" }}
+          
+            {{ with .Parent }}
+              {{ if ne .RelPermalink $.Site.Home.RelPermalink }}
+                <a href="{{ .RelPermalink }}">
+                  {{ .Title }}
+                </a>
+              {{ end }}
+            {{ end }}
+              
+            <span class="breadcrumb-current">
+              {{ .Title }}
+            </span>
+          
+          {{ end }}
+          
+        </nav>
+      
+      </div>
+    </div>
+
+    {{ end }}
+
+  </header>
+
+  <main id="conteudo" class="container">
+    {{ block "main" . }}{{ end }}
+  </main>
+
+  <footer role="contentinfo" class="otlab-footer">
+
+    <div class="footer-content">
+      <div class="container">
+
+        <div class="footer-grid">
+
+          <!-- COLUNA ESQUERDA -->
+          <div class="footer-col footer-brand">
+
+            <img src="{{ "css/images/OTLab-MainHeader.png" | relURL }}" alt="OTLab" class="footer-brand-image"
+              loading="lazy" />
+
+            <img src="{{ "css/images/logo-ESTG.png" | relURL }}" alt="Politécnico de Leiria"
+              class="footer-poly-logo" />
+
+          </div>
+
+          <!-- NAVEGAÇÃO -->
+          <div class="footer-col footer-nav-col">
+
+            <h4>{{ i18n "footer_nav" }}</h4>
+
+            <ul>
+
+              <li>
+                <a href="{{ "" | absLangURL }}" class="footer-nav-link">
+                  <span class="footer-nav-icon">🏠</span>
+                  {{ i18n "nav_home" }}
+                </a>
+              </li>
+              
+              <li>
+                <a href="{{ "learning/" | absLangURL }}" class="footer-nav-link">
+                  <span class="footer-nav-icon">🧭</span>
+                  {{ i18n "nav_learning" }}
+                </a>
+              </li>
+
+              <li>
+                <a href="{{ "labs/" | absLangURL }}" class="footer-nav-link">
+                  <span class="footer-nav-icon">🧪</span>
+                  {{ i18n "nav_labs" }}
+                </a>
+              </li>
+
+              <li>
+                <a href="{{ "docs/" | absLangURL }}" class="footer-nav-link">
+                  <span class="footer-nav-icon">📄</span>
+                  {{ i18n "nav_docs" }}
+                </a>
+              </li>
+
+              <li>
+                <a href="{{ "about/" | absLangURL }}" class="footer-nav-link">
+                  <span class="footer-nav-icon">👤</span>
+                  {{ i18n "nav_about" }}
+                </a>
+              </li>
+
+            </ul>
+
+          </div>
+
+          <!-- SOBRE -->
+          <div class="footer-col footer-about">
+
+            <h4>{{ i18n "footer_about" }}</h4>
+
+            <p>
+              {{ i18n "footer_collab" }}
+            </p>
+
+          </div>
+
+        </div>
+
+        <div class="footer-bottom">
+
+          <p>
+            © 2026 <strong>OTLab</strong> - ESTG / Politécnico de Leiria
+          </p>
+
+          <div class="footer-bottom-links">
+
+            <a href="https://github.com/2025-26-EI-Projects/OTLab" target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+
+            <span>•</span>
+
+            <a href="{{ "" | absLangURL }}">
+              OTLab Project
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </footer>
+
+  <button id="back-to-top" aria-label="{{ i18n "back_to_top" }}">
+    ↑
+  </button>
+
+  <script>
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const htmlElement = document.documentElement;
+
+    // Initialize theme from localStorage or system preference
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+    if (initialTheme === 'dark') {
+      htmlElement.setAttribute('data-theme', 'dark');
+      themeToggle.setAttribute('aria-pressed', 'true');
+      themeToggle.textContent = '🌙';
+    } else {
+      htmlElement.removeAttribute('data-theme');
+      themeToggle.setAttribute('aria-pressed', 'false');
+      themeToggle.textContent = '☀️';
+    }
+
+    // Toggle theme on button click
+    themeToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const currentTheme = htmlElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+      if (newTheme === 'dark') {
+        htmlElement.setAttribute('data-theme', 'dark');
+        themeToggle.setAttribute('aria-pressed', 'true');
+        themeToggle.textContent = '🌙';
+        localStorage.setItem('theme', 'dark');
+      } else {
+        htmlElement.removeAttribute('data-theme');
+        themeToggle.setAttribute('aria-pressed', 'false');
+        themeToggle.textContent = '☀️';
+        localStorage.setItem('theme', 'light');
+      }
+    });
+
+    // Language dropdown functionality
+    const langDropdownBtn = document.querySelector('.lang-dropdown-btn');
+    const langDropdownMenu = document.querySelector('.lang-dropdown-menu');
+    const langDropdownItems = document.querySelectorAll('.lang-dropdown-item');
+
+    if (langDropdownBtn && langDropdownMenu) {
+      // Toggle dropdown on button click
+      langDropdownBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const isExpanded = langDropdownBtn.getAttribute('aria-expanded') === 'true';
+        langDropdownBtn.setAttribute('aria-expanded', String(!isExpanded));
+      });
+
+      // Close dropdown when clicking on a language
+      langDropdownItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          // Allow natural navigation
+          langDropdownBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        const isClickInsideDropdown = e.target.closest('.lang-dropdown');
+        if (!isClickInsideDropdown) {
+          langDropdownBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    // Language switch with validation and error handling
+    const langSwitchBtns = document.querySelectorAll('.lang-switch-btn');
+    langSwitchBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const href = btn.getAttribute('href');
+        if (!href || href === '#' || href === '') {
+          e.preventDefault();
+          console.error('Invalid language switch URL:', href);
+
+          // Fallback: construct URL based on current language
+          const currentLang = document.documentElement.lang;
+          let fallbackUrl = '/ExemploPagina.github.io/';
+
+          if (currentLang === 'en') {
+            fallbackUrl += '';
+          } else {
+            fallbackUrl += 'en/';
+          }
+
+          window.location.href = fallbackUrl;
+          return false;
+        }
+
+        // Allow normal navigation
+        return true;
+      }, false);
+    });
+
+    // Back to top button
+    const backToTopBtn = document.getElementById('back-to-top');
+    if (backToTopBtn) {
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+          backToTopBtn.style.display = 'block';
+        } else {
+          backToTopBtn.style.display = 'none';
+        }
+      });
+
+      backToTopBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      // Hide initially
+      backToTopBtn.style.display = 'none';
+    }
+
+    const labsToggleButtons = document.querySelectorAll(
+      '[data-labs-target]'
+    );
+
+    labsToggleButtons.forEach((button) => {
+      const targetId = button.getAttribute('data-labs-target');
+      const grid = targetId ? document.getElementById(targetId) : null;
+
+      if (!grid) {
+        return;
+      }
+
+      const expandText =
+        button.getAttribute('data-expand-text') || 'Ver todos os labs';
+      const collapseText =
+        button.getAttribute('data-collapse-text') || 'Ver menos';
+
+      const syncButton = () => {
+        const isCollapsed = grid.classList.contains('is-collapsed');
+        button.textContent = isCollapsed ? expandText : collapseText;
+        button.setAttribute('aria-expanded', String(!isCollapsed));
+      };
+
+      syncButton();
+
+      button.addEventListener('click', () => {
+        grid.classList.toggle('is-collapsed');
+        syncButton();
+      });
+    });
+
+    const ICON_COPY =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>';
+    const ICON_CHECK =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20,6 9,17 4,12"/></svg>';
+
+    document.querySelectorAll('pre > code').forEach((code) => {
+      const pre = code.parentElement;
+
+      if (!pre || pre.querySelector('.code-copy-btn')) {
+        return;
+      }
+
+      const button = document.createElement('button');
+      button.className = 'code-copy-btn';
+      button.type = 'button';
+      button.innerHTML = ICON_COPY;
+      button.setAttribute('aria-label', '{{ i18n "copy_code" }}');
+      button.title = '{{ i18n "copy_code" }}';    
+
+      button.addEventListener('click', async () => {
+        const codeText = code.textContent || '';
+
+        try {
+          await navigator.clipboard.writeText(codeText);
+          button.innerHTML = ICON_CHECK;
+          button.classList.add('copied');
+          button.setAttribute('aria-label', '{{ i18n "code_copied" }}');
+          button.title = '{{ i18n "code_copied" }}';
+        } catch {
+          button.setAttribute('aria-label', '{{ i18n "copy_failed" }}');
+          button.title = '{{ i18n "copy_failed" }}';
+        }
+
+        window.setTimeout(() => {
+          button.innerHTML = ICON_COPY;
+          button.classList.remove('copied');
+          button.setAttribute('aria-label', '{{ i18n "copy_code" }}');
+          button.title = '{{ i18n "copy_code" }}';
+        }, 1800);
+      });
+
+      pre.appendChild(button);
+    });
+  </script>
+
+  <script src="{{ "js/tasks.js" | relURL }}" defer></script>
+
+</body>
+
+</html>

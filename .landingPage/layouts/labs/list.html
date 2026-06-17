@@ -1,0 +1,111 @@
+{{ define "main" }}
+
+<section class="hero hero-compact">
+  <span class="eyebrow">{{ i18n "labs_list_eyebrow" }}</span>
+  <h1>{{ i18n "labs_list_heading" }}</h1>
+  <p>{{ i18n "labs_list_subtitle" }}</p>
+</section>
+
+<section class="section labs-list-section">
+
+  <div class="labs-list-intro">
+    <h2>{{ len .Pages }} {{ i18n "labs_available" }}</h2>
+    <p>{{ i18n "labs_list_tip" }}</p>
+  </div>
+
+  {{ $labsIndexed := slice }}
+
+  {{ range .Pages }}
+
+    {{ $num := 999 }}
+
+    {{ with .File }}
+
+      {{ $folderName := path.Base .Dir }}
+
+      {{ if hasPrefix $folderName "OTLab" }}
+
+        {{ $numStr := replace $folderName "OTLab" "" }}
+
+        {{ $numStr = strings.TrimLeft "0" $numStr }}
+
+        {{ if eq $numStr "" }}
+          {{ $numStr = "0" }}
+        {{ end }}
+
+        {{ $num = int $numStr }}
+
+      {{ end }}
+
+    {{ end }}
+
+    {{ $labsIndexed = $labsIndexed | append (dict "num" $num "page" .) }}
+
+  {{ end }}
+
+  {{ $labs := sort $labsIndexed "num" "asc" }}
+
+  <div class="labs-list">
+
+    {{ range $item := $labs }}
+
+      {{ $page := $item.page }}
+
+      <article class="lab-item">
+
+        <div class="lab-number">
+          {{ printf "%02d" $item.num }}
+        </div>
+
+        <div class="lab-content">
+
+          <h3>
+            <a href="{{ $page.RelPermalink }}">
+              {{ $page.Title }}
+            </a>
+          </h3>
+
+          <p class="lab-description">
+            {{ with $page.Params.description }}
+              {{ . }}
+            {{ else }}
+              {{ $page.Summary | plainify | truncate 150 }}
+            {{ end }}
+          </p>
+
+          <div class="lab-meta-group">
+
+            <span class="lab-meta">OT/ICS</span>
+
+            {{ with $page.Params.duration }}
+              <span class="lab-meta">
+                ⏱️ {{ . }}
+              </span>
+            {{ end }}
+
+            {{ with $page.Params.difficulty }}
+              <span class="lab-meta difficulty-{{ lower . }}">
+                {{ . }}
+              </span>
+            {{ end }}
+
+          </div>
+
+        </div>
+
+        <a
+          href="{{ $page.RelPermalink }}"
+          class="btn btn-primary"
+        >
+          {{ i18n "labs_open_short" }}
+        </a>
+
+      </article>
+
+    {{ end }}
+
+  </div>
+
+</section>
+
+{{ end }}
