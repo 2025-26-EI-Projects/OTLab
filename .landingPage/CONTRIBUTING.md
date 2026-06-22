@@ -44,7 +44,7 @@ git clone https://github.com/<o-teu-username>/ExemploPagina.github.io.git
 cd ExemploPagina.github.io
 
 # 3. Adicionar o repositório original
-git remote add upstream https://github.com/substationworm/ExemploPagina.github.io.git
+git remote add upstream https://2025-26-EI-Projects.github.io/OTLab/
 
 # 4. Confirmar os remotes
 git remote -v
@@ -234,35 +234,44 @@ OTLabXX/
 
 ---
 
-# Frontmatter e Metadados
+## Frontmatter e Metadados
 
-O frontmatter controla os metadados utilizados na landing page, na listagem de laboratórios e no skill path.
+O frontmatter controla os metadados utilizados na landing page, na listagem de laboratórios e na organização do skill path.
 
-Exemplo:
+Todos os laboratórios devem seguir o mesmo esquema para garantir consistência na navegação e progressão.
+
+### Estrutura padrão
 
 ```yaml
 ---
-title: "Lab 14 — Introdução ao Protocolo Modbus"
-description: "Exploração prática de dispositivos industriais utilizando Modbus."
-difficulty: "Iniciante"
+title: "Título do laboratório"
+description: "Descrição clara do objetivo do laboratório."
+categories: ["Laboratórios"]
+difficulty: "Iniciante | Intermédio | Avançado (escolher um)"
 tags:
-  - OT
-  - ICS
-  - Modbus
+  - TAG1
+  - TAG2
+  - TAG3
+estimated_time: "60 min"
+level: 0
+area: "discovery"
 draft: false
 ---
 ```
 
-## Campos recomendados
+## Campos do Frontmatter
 
-| Campo       | Obrigatório | Descrição                              |
-| ----------- | ----------- | -------------------------------------- |
-| title       | Sim         | Título do laboratório                  |
-| description | Sim         | Resumo apresentado na landing page     |
-| difficulty  | Sim         | Iniciante, Intermédio ou Avançado      |
-| tags        | Sim         | Tecnologias e protocolos abordados     |
-| draft       | Opcional    | Define se o laboratório está publicado |
-
+| Campo           | Obrigatório | Descrição                                   |
+|----------------|------------|---------------------------------------------|
+| title          | Sim        | Título do laboratório                       |
+| description    | Sim        | Resumo apresentado na landing page          |
+| categories     | Sim        | Categoria do conteúdo (ex: Laboratórios)    |
+| difficulty     | Sim        | Iniciante, Intermédio ou Avançado          |
+| tags           | Sim        | Tecnologias e protocolos abordados         |
+| estimated_time | Sim        | Tempo estimado de execução                 |
+| level          | Sim        | Ordem no skill path (0, 1, 2, 3...)        |
+| area           | Sim        | Área técnica (discovery, exploitation, etc)|
+| draft          | Opcional   | Se true, o laboratório não é publicado     |
 ---
 
 # Traduções e PDFs
