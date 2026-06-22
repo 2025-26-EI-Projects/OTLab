@@ -1,6 +1,6 @@
-# DNP3 & Wireshark Lab
+# OTLab14 — DNP3 + Wireshark Lab
 
-![](https://raw.githubusercontent.com/substationworm/OTLab/main/OTLab-SecondHeader.png "DNP3 & Wireshark Lab")
+![](https://raw.githubusercontent.com/substationworm/OTLab/main/OTLab-SecondHeader.png "OTLab14 — DNP3 + Wireshark Lab")
 
 [![Curriculum Lattes](https://img.shields.io/badge/Lattes-white)](http://lattes.cnpq.br/8846358506427099)
 [![ORCID](https://img.shields.io/badge/ORCID-grey)](https://orcid.org/0000-0002-6254-7306)
