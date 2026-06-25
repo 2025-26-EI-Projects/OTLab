@@ -1,107 +1,106 @@
-# Incident Response Template
+# Modelo de Resposta a Incidentes
 
-## Artifact 1 — Incident Timeline / Running Log
-
-
-| # | Timestamp (UTC) | Actor (attacker / responder / system) | Purdue level | Action or observation | Evidence ref |
-|---|-----------------|---------------------------------------|--------------|-----------------------|--------------|
-| 1 |                 |                                       |              |                       |              |
-| 2 |                 |                                       |              |                       |              |
-| 3 |                 |                                       |              |                       |              |
-| 4 |                 |                                       |              |                       |              |
-| 5 |                 |                                       |              |                       |              |
-| … |                 |                                       |              |                       |              |
-
-## Artifact 2 — Containment Decision Record (CDR)
-
-**Decision required (one line):**
+## Artefacto 1 — Cronologia do Incidente / Registo Corrente
 
 
+| # | Timestamp (UTC) | Ator (atacante / responder / sistema) | Nível Purdue | Ação ou observação | Ref. de evidência |
+|---|-----------------|---------------------------------------|--------------|--------------------|-------------------|
+| 1 |                 |                                       |              |                    |                   |
+| 2 |                 |                                       |              |                    |                   |
+| 3 |                 |                                       |              |                    |                   |
+| 4 |                 |                                       |              |                    |                   |
+| 5 |                 |                                       |              |                    |                   |
+| … |                 |                                       |              |                    |                   |
 
-**Time decision was made (UTC):** `___`  **Decision owner:** `___`
+## Artefacto 2 — Registo de Decisão de Contenção (CDR)
+
+**Decisão necessária (uma linha):**
 
 
 
-### Options considered
-
-| Option | What it does | Safety impact | Availability impact (does the feeder keep running?) | Security effect |
-|--------|--------------|---------------|-----------------------------------------------------|-----------------|
-|        |              |               |                                                     |                 |
-|        |              |               |                                                     |                 |
-|        |              |               |                                                     |                 |
-
-### Operational coordination
-
-**Operations contact / authoriser:** `___`  **Authorised? (Y/N):** `___`
-
-### Decision and rationale
+**Hora em que a decisão foi tomada (UTC):** `___`  **Responsável pela decisão:** `___`
 
 
 
+### Opções consideradas
 
+| Opção | O que faz | Impacto em safety | Impacto na disponibilidade (o alimentador continua a funcionar?) | Efeito de segurança |
+|-------|-----------|-------------------|------------------------------------------------------------------|---------------------|
+|       |           |                   |                                                                  |                     |
+|       |           |                   |                                                                  |                     |
+|       |           |                   |                                                                  |                     |
 
-### Reversibility & rollback
+### Coordenação operacional
+
+**Contacto de operações / autorizador:** `___`  **Autorizado? (S/N):** `___`
+
+### Decisão e justificação
 
 
 
 
-### Post-action verification
 
-| Verification check | Method / command | Evidence ref | Result (PASS/FAIL) |
-|--------------------|------------------|--------------|--------------------|
+### Reversibilidade & rollback
 
+
+
+
+### Verificação pós-ação
+
+| Verificação | Método / comando | Ref. de evidência | Resultado (PASS/FAIL) |
+|-------------|------------------|-------------------|-----------------------|
 
 
 
 
 ---
 
-## Artifact 3 — Incident Report (capstone)
+## Artefacto 3 — Relatório de Incidente (capstone)
 
-**Incident ID:** `___`  **Date/time opened (UTC):** `___`  **Closed (UTC):** `___`
-**Handler:** `___`  **Classification:** `___`  **Severity:** `___`  **Current status:** `___`
-
-
-
-### 1. Executive summary
+**ID do incidente:** `___`  **Data/hora de abertura (UTC):** `___`  **Fecho (UTC):** `___`
+**Responsável:** `___`  **Classificação:** `___`  **Severidade:** `___`  **Estado atual:** `___`
 
 
 
-
-### 2. Scope (in Purdue terms)
+### 1. Resumo executivo
 
 
 
 
-
-
-### 3. Timeline summary
-
-
-
-### 4. Root cause
+### 2. Âmbito (em termos Purdue)
 
 
 
-### 5. Attacker actions and IOCs
-
-| Attacker action | OTLab15 scenario | MITRE ATT&CK ICS technique | IOC for a SIEM rule |
-|-----------------|------------------|----------------------------|---------------------|
-|                 |                  |                            |                     |
-|                 |                  |                            |                     |
 
 
 
-### 6. Response actions taken
-
-| Response action | CSF 2.0 function (Detect/Respond/Recover) | Evidence ref |
-|-----------------|-------------------------------------------|--------------|
-|                 |                                           |              |
-|                 |                                           |              |
+### 3. Resumo da cronologia
 
 
 
-### 7. What was deliberately NOT done, and why
+### 4. Causa-raiz
+
+
+
+### 5. Ações do atacante e IOCs
+
+| Ação do atacante | Cenário OTLab15 | Técnica MITRE ATT&CK ICS | IOC para uma regra de SIEM |
+|------------------|-----------------|--------------------------|----------------------------|
+|                  |                 |                          |                            |
+|                  |                 |                          |                            |
+
+
+
+### 6. Ações de resposta tomadas
+
+| Ação de resposta | Função CSF 2.0 (Detect/Respond/Recover) | Ref. de evidência |
+|------------------|-----------------------------------------|-------------------|
+|                  |                                         |                   |
+|                  |                                         |                   |
+
+
+
+### 7. O que foi deliberadamente NÃO feito, e porquê
 
 
 
@@ -109,16 +108,16 @@
 
 
     
-### 8. Recovery & all-clear sign-off
+### 8. Recuperação & aprovação do "tudo limpo"
 
-| Recovery criterion | Expected | Observed | Result |
-|--------------------|----------|----------|--------|
-
-
-
-
-**All-clear authorised by (operations):** `___`  **Time (UTC):** `___`
+| Critério de recuperação | Esperado | Observado | Resultado |
+|-------------------------|----------|-----------|-----------|
 
 
 
-### 9. Lessons learned & recommendations
+
+**"Tudo limpo" autorizado por (operações):** `___`  **Hora (UTC):** `___`
+
+
+
+### 9. Lições aprendidas & recomendações

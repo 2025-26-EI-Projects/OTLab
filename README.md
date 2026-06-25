@@ -53,9 +53,9 @@ Additionally, as outlined in [ThirdPartyDockerImages](https://github.com/substat
 - [OTLab11](https://github.com/substationworm/OTLab/tree/main/OTLab11): AiTM MFA Bypass.
 - [OTLab12](https://github.com/substationworm/OTLab/tree/main/OTLab12): Fundamental Network Topologies.
 - [OTLab13](https://github.com/substationworm/OTLab/tree/main/OTLab13): Jump Host.
-- [OTLab14](./OTLab14): DNP3 Traffic Analysis with Wireshark.
-- [OTLab15](./OTLab15): DNP3 Anomaly Detection with Zeek.
-- [OTLab16](./OTLab16): DNP3 Incident Response and OT Containment.
+- [OTLab14](./OTLab14): DNP3 Protocol Emulation and Traffic Analysis Using Wireshark.
+- [OTLab15](./OTLab15): DNP3 Protocol Emulation and Detection with Zeek.
+- [OTLab16](./OTLab16): DNP3 Protocol Emulation and Incident Response.
 
 ---
 

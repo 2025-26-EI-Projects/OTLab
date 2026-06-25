@@ -1,4 +1,13 @@
-# OTLab14 — DNP3 + Wireshark Lab
+﻿---
+title: "Lab 14 - Emulação do protocolo DNP3 e análise de tráfego com Wireshark"
+description: "Emulação de tráfego DNP3 entre master e outstation e a sua análise com Wireshark numa rede OT."
+categories: ["Laboratórios"]
+difficulty: "Avançado"
+tags: ["OT", "ICS", "DNP3", "Wireshark", "tshark", "Análise de Tráfego", "Captura de Pacotes", "SCADA", "Reconhecimento de Rede", "Análise de Protocolo"]
+estimated_time: "90 min"
+level: 4
+area: "detection"
+---
 
 ![](https://raw.githubusercontent.com/substationworm/OTLab/main/OTLab-SecondHeader.png "OTLab14 — DNP3 + Wireshark Lab")
 
@@ -14,94 +23,91 @@
 [![LinkedIn Farias Rafael](https://img.shields.io/badge/LinkedIn-Farias_Rafael-blue)](https://www.linkedin.com/in/farias-rafael/)
 [![IPLeiria ESTG-DEI](https://img.shields.io/badge/IPLeiria-ESTG--DEI-green)](https://www.ipleiria.pt/estg-dei/)
 
-## Scenario
+## Cenário
 
-A small electric utility runs a remote substation that publishes telemetry over **DNP3** to a control center located in the corporate network. You — the student — sit at the **engineering workstation (EWS/otlab-student)**, which is dual-homed between the (`OT segment`) and the (`corporate`) segment and forwards traffic between them.
+Uma pequena empresa de eletricidade opera uma subestação remota que publica telemetria por **DNP3** para um centro de controlo situado na rede corporativa. Tu — o estudante — estás na **estação de trabalho de engenharia (EWS/otlab-student)**, que tem uma interface em cada segmento (`OT` e `corporativo`) e encaminha tráfego entre ambos.
 
-Your job in this lab is to **understand how DNP3 carries the conversation** between the master and the outstation: where each host sits, what the protocol exchanges look like on the wire, which data points are being polled, and what the protocol does *not* do (spoiler: confidentiality and authentication).
+A tua tarefa neste laboratório é **perceber como o DNP3 transporta a conversa** entre o master e a outstation: onde está cada host, qual o aspeto das trocas do protocolo no fio, que pontos de dados estão a ser consultados (*polled*) e o que o protocolo *não* faz (atenção: confidencialidade e autenticação).
 
-This is the first lab in a three-part story. OTLab15 will introduce anomalous traffic on the same topology, which you will detect with Zeek. OTLab16 will walk through the incident-response steps triggered by what OTLab15 surfaces.
+Este é o primeiro laboratório de uma história em três partes. O OTLab15 introduzirá tráfego anómalo na mesma topologia, que irás detetar com Zeek. O OTLab16 percorrerá os passos de resposta a incidentes desencadeados pelo que o OTLab15 revelar.
 
 > [!NOTE]
-> While analysing the captured traffic, refer to `DNP3WiresharkReference.md` for the Wireshark dissector field names, the DNP3 frame layout, the function code table, and useful display filters. It is meant as a lookup card — keep it open in another tab.
+> Enquanto analisas o tráfego capturado, consulta o `DNP3WiresharkReference.md` para os nomes dos campos do dissecador do Wireshark, a estrutura da trama DNP3, a tabela de códigos de função e filtros de exibição úteis. Serve de cartão de consulta — mantém-no aberto noutro separador.
 
-## 📝 Tasks
+## 📝 Tarefas
 
 > [!WARNING]
-> All tasks are conducted inside the lab containers. **Do not point any DNP3 client, scanner, or capture at hosts outside this lab** — DNP3 devices in production are fragile and unauthenticated probes can disrupt real industrial processes.
+> Todas as tarefas são realizadas dentro dos contentores do laboratório. **Não apontes nenhum cliente DNP3, scanner ou captura a hosts fora deste laboratório** — os dispositivos DNP3 em produção são frágeis e sondagens não autenticadas podem perturbar processos industriais reais.
 
-- [ ] Verify the IP addresses and interfaces of the `otlab-student` workstation, and confirm that it has one foot in each subnet.
-Hint: {xxx.xxx.x0.xxx} and {xxx.xxx.x1.xxx}
+- 1️⃣ Verifica os endereços IP e as interfaces da estação `otlab-student` e confirma que tem um pé em cada sub-rede.
+Pista: {xxx.xxx.x0.xxx} e {xxx.xxx.x1.xxx}
 
-- [ ] Using nmap identify the relevant hosts by scaning the subnets that you have access. Try to figure out what is the OT segment and IT segment. Hint: {xxx.xxx.x0.x/xx} and {xxx.xxx.x1.x/xx}
+- 2️⃣ Usando o nmap, identifica os hosts relevantes através do varrimento das sub-redes a que tens acesso. Tenta perceber qual é o segmento OT e qual é o segmento IT. Pista: {xxx.xxx.x0.x/xx} e {xxx.xxx.x1.x/xx}
 
-- [ ] Confirm that IP forwarding is enabled on the (`EWS/otlab-student`) by pinging the `outstation` and the `master` to verify both segments are reachable.
+- 3️⃣ Confirma que o encaminhamento de IP (*IP forwarding*) está ativo na (`EWS/otlab-student`), fazendo ping à `outstation` e ao `master` para verificar que ambos os segmentos são alcançáveis.
 
-- [ ] From the `EWS/otlab-student`, scan the outstation host using nmap and identify the number of the open TCP port serving DNP3. Hint: {xxxxx/tcp}
+- 4️⃣ A partir da `EWS/otlab-student`, faz scan ao host da outstation com o nmap e identifica o número da porta TCP aberta que serve o DNP3. Pista: {xxxxx/tcp}
 
-- [ ] Access the otlab-student desktop using the browser at http://localhost:3000/, capture live traffic in its OT-side interface using Wireshark and isolate the DNP3 conversation between `master` and `outstation`. To open Wireshark you'll need to issue the command `wireshark` in the terminal emulator inside the otlab-student workstation.
+- 5️⃣ Acede ao desktop do otlab-student através do browser em http://localhost:3000/, captura tráfego em direto na sua interface do lado OT usando o Wireshark e isola a conversa DNP3 entre `master` e `outstation`. Para abrir o Wireshark precisas de executar o comando `wireshark` no emulador de terminal dentro da estação otlab-student.
 
-- [ ] Identify the **two DNP3 layers** visible in each frame and explain, in your own words, the role of each.
-    - *Hint: {xxxx xxxx layer} (with start bytes `0x05 0x64`) and {xxxxxxxxxxx layer}.*
+- 6️⃣ Identifica as **duas camadas DNP3** visíveis em cada trama e explica, por palavras tuas, o papel de cada uma.
+    - *Pista: a {camada xxxx xxxx} (com os bytes iniciais `0x05 0x64`) e a {camada xxxxxxxxxxx}.*
 
-- [ ] In the captured exchange, locate and document:
-    - The **master address** and **outstation address** on the data link layer. 
-    - The **application function code** used by the master to poll the outstation.
-    - The **application function code** used by the outstation to respond. 
+- 7️⃣ Na troca capturada, localiza e documenta:
+    - O **endereço do master** e o **endereço da outstation** na camada de ligação de dados.
+    - O **código de função de aplicação** usado pelo master para consultar a outstation.
+    - O **código de função de aplicação** usado pela outstation para responder.
 
-- [ ] Decode at least one response message and **infer** which DNP3 object/index corresponds to each simulated process variable (`Voltage`, `Current`, `BreakerOpen`). DNP3 carries no labels on the wire — justify your mapping using the object type (Analog vs Binary), the magnitude of the values, and the temporal dynamics described in the note below.
+- 8️⃣ Descodifica pelo menos uma mensagem de resposta e **infere** que objeto/índice DNP3 corresponde a cada variável de processo simulada (`Voltage`, `Current`, `BreakerOpen`). O DNP3 não transporta etiquetas no fio — justifica o teu mapeamento com base no tipo de objeto (Analógico vs Binário), na magnitude dos valores e na dinâmica temporal descrita na nota abaixo.
 
+- 9️⃣ Mede o **intervalo de polling** observado no fio (a partir dos *timestamps* de pedidos consecutivos master→outstation) e confirma que corresponde à cadência configurada indicada na nota abaixo.
+    - *Pista: no Wireshark, constrói um filtro de exibição que mantenha apenas os pedidos de poll do master (tramas com origem no master e com o código de função de aplicação que identificaste na tarefa anterior) e depois vai a* **View → Time Display Format → Seconds Since Previous Displayed Packet** *— a coluna* **Time** *passará a mostrar diretamente o delta entre polls. Como verificação visual,* **Statistics → I/O Graph** *com o mesmo filtro mostra os picos periódicos.*
 
-- [ ] Measure the **polling interval** observed on the wire (from the timestamps of consecutive master→outstation requests) and confirm it matches the configured cadence stated in the note below.
-    - *Hint: in Wireshark, build a display filter that keeps only the master's poll requests (frames sourced from the master with the application function code you identified in the previous task), then go to* **View → Time Display Format → Seconds Since Previous Displayed Packet** *— the* **Time** *column will then show the inter-poll delta directly. As a visual cross-check,* **Statistics → I/O Graph** *with the same filter shows the periodic peaks.*
+- 🔟 Inspeciona os bytes de uma única mensagem de aplicação DNP3 e responde: *Algum campo está cifrado? O master está autenticado? O que aprenderia — ou alteraria — um atacante ao intercetar este tráfego?*
 
-
-- [ ] Inspect the bytes of any single DNP3 application message and answer: *Is any field encrypted? Is the master authenticated? What would an attacker learn — or change — by intercepting this traffic?*
-
-- [ ] Briefly document your findings (one paragraph) describing the protocol behavior and the security properties (or lack thereof) you observed. **This document is the input for OTLab15.** 
-
+- 1️⃣1️⃣ Documenta brevemente as tuas conclusões (um parágrafo) descrevendo o comportamento do protocolo e as propriedades de segurança (ou a sua ausência) que observaste. **Este documento é a entrada para o OTLab15.**
 
 > [!NOTE]
-> The outstation simulates a feeder breaker: it publishes a voltage reading in the 110–130 V range and a current reading in the 0.5–15 A range every 5 seconds, and toggles a `BreakerOpen` flag every 20 updates (≈100 s). The master polls every 10 seconds. Knowing the *expected* baseline of this lab — including the value ranges — is what will let you map the DNP3 indices to the right variables and spot anomalies in OTLab15.
+> A outstation simula o disjuntor de um alimentador: publica uma leitura de tensão na gama 110–130 V e uma leitura de corrente na gama 0,5–15 A a cada 5 segundos, e alterna uma *flag* `BreakerOpen` a cada 20 atualizações (≈100 s). O master faz poll a cada 10 segundos. Conhecer a baseline *esperada* deste laboratório — incluindo as gamas de valores — é o que te permitirá mapear os índices DNP3 às variáveis corretas e detetar anomalias no OTLab15.
 
-## 🎯 Skills
+## 🎯 Competências
 
-**Hands-on:** Network Reconnaissance · Packet Capture (Wireshark) · DNP3 Protocol Dissection · OT/ICS Security Analysis
+**Práticas:** Reconhecimento de Rede · Captura de Pacotes (Wireshark) · Dissecação do Protocolo DNP3 · Análise de Segurança OT/ICS
 
-**Mapped to [MITRE ATT&CK for ICS](https://attack.mitre.org/matrices/ics/):**
+**Mapeadas para o [MITRE ATT&CK for ICS](https://attack.mitre.org/matrices/ics/):**
 
 [![T0846 Remote System Discovery](https://img.shields.io/badge/ATT%26CK_ICS-T0846_Remote_System_Discovery-red)](https://attack.mitre.org/techniques/T0846/)
 [![T0840 Network Connection Enumeration](https://img.shields.io/badge/ATT%26CK_ICS-T0840_Network_Connection_Enumeration-red)](https://attack.mitre.org/techniques/T0840/)
 [![T0842 Network Sniffing](https://img.shields.io/badge/ATT%26CK_ICS-T0842_Network_Sniffing-red)](https://attack.mitre.org/techniques/T0842/)
 [![T0861 Point & Tag Identification](https://img.shields.io/badge/ATT%26CK_ICS-T0861_Point_%26_Tag_Identification-red)](https://attack.mitre.org/techniques/T0861/)
 
-## 🔖 Nomenclature
+## 🔖 Nomenclatura
 
-- DNP3: Distributed Network Protocol version 3 — SCADA protocol widely used in electric, water, and oil & gas utilities.
-- EWS: Engineering workstation — the host operated by control engineers to configure, program, and monitor field devices.
-- ICS: Industrial control system.
-- IP: Internet protocol.
-- MAC: Media access control.
-- OT: Operational technology.
-- PLC: Programmable logic controller.
-- RTU: Remote terminal unit — the field device role typically played by a DNP3 outstation.
-- SCADA: Supervisory control and data acquisition.
-- TCP: Transmission control protocol.
+- DNP3: Distributed Network Protocol version 3 — protocolo SCADA amplamente usado em serviços de eletricidade, água e óleo & gás.
+- EWS: Estação de trabalho de engenharia (*engineering workstation*) — o host operado por engenheiros de controlo para configurar, programar e monitorizar dispositivos de campo.
+- ICS: Sistema de controlo industrial (*industrial control system*).
+- IP: Protocolo de Internet (*internet protocol*).
+- MAC: Controlo de acesso ao meio (*media access control*).
+- OT: Tecnologia operacional (*operational technology*).
+- PLC: Controlador lógico programável (*programmable logic controller*).
+- RTU: Unidade terminal remota (*remote terminal unit*) — o papel de dispositivo de campo tipicamente desempenhado por uma outstation DNP3.
+- SCADA: Supervisão, controlo e aquisição de dados (*supervisory control and data acquisition*).
+- TCP: Protocolo de controlo de transmissão (*transmission control protocol*).
 
-## 🛠️ Usage
+## 🛠️ Utilização
 
 ```
 Usage: ./OTLab14.sh -start [kali|ubuntu] | -stop | -clean | -run | -web | -restart | -status
 
-  -start     Start the DNP3Lab environment using the specified distro (default: ubuntu)
-             Valid options: kali (rolling) or ubuntu (22.04)
-  -run       Open a terminal inside the otlab-student container
-  -web       Print the noVNC URL to access the student desktop
-  -clean     Remove containers, volumes, and network
-  -stop      Stop all containers
-  -restart   Restart previously stopped containers
-  -status    Show current containers status
+  -start     Inicia o ambiente do DNP3Lab usando a distro indicada (predefinição: ubuntu)
+             Opções válidas: kali (rolling) ou ubuntu (22.04)
+  -run       Abre um terminal dentro do contentor otlab-student
+  -web       Mostra o URL noVNC para aceder ao desktop do estudante
+  -clean     Remove contentores, volumes e a rede
+  -stop      Para todos os contentores
+  -restart   Reinicia contentores previamente parados
+  -status    Mostra o estado atual dos contentores
 ```
 
 > [!NOTE]
-> When run on **WSL2**, the script auto-detects the environment and applies the kernel-level rules (`bridge-nf-call-iptables=0` and two `DOCKER-USER` ACCEPT rules) needed for traffic to be routed across the two Docker bridges. These rules require `sudo` and are reverted on `-clean`. On native Linux and macOS Docker Desktop the rules are skipped — Docker's defaults already allow the cross-bridge forwarding.
+> Quando executado em **WSL2**, o script deteta automaticamente o ambiente e aplica as regras ao nível do kernel (`bridge-nf-call-iptables=0` e duas regras `DOCKER-USER` ACCEPT) necessárias para que o tráfego seja encaminhado entre as duas *bridges* Docker. Estas regras requerem `sudo` e são revertidas no `-clean`. Em Linux nativo e no Docker Desktop do macOS as regras são ignoradas — as predefinições do Docker já permitem o encaminhamento entre *bridges*.

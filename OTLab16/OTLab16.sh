@@ -36,7 +36,7 @@ show_banner() {
     echo "|  |  | | | |  |__| .'| . |  _| "
     echo "|_____| |_| |_____|__,|___|___| "
     printf "\033[1;37m"
-    printf "Exercise:  DNP3 + Incident Response\n"
+    printf "Exercise:  16-DNP3 Protocol Emulation and Incident Response\n"
     printf "Version:   0.1\n"
     printf "Author:    rafaelfarias\n"
     printf "\033[0m"

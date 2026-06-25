@@ -30,7 +30,7 @@ show_banner() {
     echo "|  |  | | | |  |__| .'| . |  _| "
     echo "|_____| |_| |_____|__,|___|___| "
     printf "\033[1;37m"
-    printf "Exercise:  DNP3 + Zeek Detection\n"
+    printf "Exercise:  15-DNP3 Protocol Emulation and Detection with Zeek\n"
     printf "Version:   0.2\n"
     printf "Author:    rafaelfarias\n"
     printf "\033[0m"

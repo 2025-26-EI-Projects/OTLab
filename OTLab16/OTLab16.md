@@ -1,4 +1,13 @@
-# OTLab16 — DNP3 + Incident Response Lab
+﻿---
+title: "Lab 16 - Emulação do protocolo DNP3 e resposta a incidentes"
+description: "Trabalhar uma intrusão OT em direto pelo ciclo de vida NIST SP 800-61r3 / CSF 2.0: triagem, contenção cirúrgica que preserva o processo DNP3, recuperação e relatório pós-incidente."
+categories: ["Laboratórios"]
+difficulty: "Avançado"
+tags: ["OT", "ICS", "DNP3", "Resposta a Incidentes", "NIST SP 800-61", "NIST SP 800-82", "CSF 2.0", "Modelo Purdue", "Contenção", "SCADA"]
+estimated_time: "90 min"
+level: 4
+area: "response"
+---
 
 ![](https://raw.githubusercontent.com/substationworm/OTLab/main/OTLab-SecondHeader.png "OTLab16 — DNP3 + Incident Response Lab")
 
@@ -14,133 +23,131 @@
 [![LinkedIn Farias Rafael](https://img.shields.io/badge/LinkedIn-Farias_Rafael-blue)](https://www.linkedin.com/in/farias-rafael/)
 [![IPLeiria ESTG-DEI](https://img.shields.io/badge/IPLeiria-ESTG--DEI-green)](https://www.ipleiria.pt/estg-dei/)
 
-## Scenario
+## Cenário
 
-This is the **third and final lab** in the substation story. In OTLab14 you read DNP3 off the wire with Wireshark and wrote down the baseline. In OTLab15 you turned that baseline into Zeek allowlists and built behavioural detectors — and the last thing you produced was a `notice.log` and a one-page incident summary.
+Este é o **terceiro e último laboratório** da história da subestação. No OTLab14 leste DNP3 do fio com o Wireshark e anotaste a baseline. No OTLab15 transformaste essa baseline em allowlists Zeek e construíste detetores comportamentais — e a última coisa que produziste foi um `notice.log` e um resumo de incidente de uma página.
 
-**This time the alarm is real.** The `notice.log` is no longer a classroom artefact: it is the **detection that opens a live incident**. The intrusion that started when **Maria from Finance** plugged in the parking-lot USB has worked its way through the corporate segment and is now probing — and spoofing — into OT, where a real feeder breaker can be flipped. You stop being the detection engineer and become the **incident responder**.
+**Desta vez o alarme é real.** O `notice.log` já não é um artefacto de sala de aula: é a **deteção que abre um incidente em direto**. A intrusão que começou quando a **Maria, do Financeiro**, ligou a pen USB do parque de estacionamento abriu caminho pelo segmento corporativo e está agora a sondar — e a falsificar (*spoof*) — para dentro da OT, onde um disjuntor de alimentador real pode ser acionado. Deixas de ser o engenheiro de deteção e passas a ser o **responsável pela resposta a incidentes**.
 
-You will work the incident through the **[NIST SP 800-61r3](https://csrc.nist.gov/pubs/sp/800/61/r3/final)** lifecycle, expressed as the **[CSF 2.0](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) functions**: *Govern · Identify · Protect* as **Preparation**, then *Detect · Respond · Recover* as the live **Incident Response**, closing with *Improve*. For the OT angle you will lean on **[NIST SP 800-82](https://csrc.nist.gov/pubs/sp/800/82/r3/final)** (Guide to OT Security).
+Vais trabalhar o incidente pelo ciclo de vida do **[NIST SP 800-61r3](https://csrc.nist.gov/pubs/sp/800/61/r3/final)**, expresso como as **funções do [CSF 2.0](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final)**: *Govern · Identify · Protect* como **Preparação**, depois *Detect · Respond · Recover* como a **Resposta a Incidentes** em direto, fechando com *Improve*. Para a vertente OT vais apoiar-te no **[NIST SP 800-82](https://csrc.nist.gov/pubs/sp/800/82/r3/final)** (Guide to OT Security).
 
-The single most important lesson of this lab: **in OT, incident response is not "pull the plug".** There are *safety* and *availability* to protect — the legitimate master↔outstation polling **must keep running** while you eject the attacker. That trade-off is what makes OT IR different from IT IR, and it is the thread that runs through every task below.
-
-> [!NOTE]
-> **The OTLab15 deliverable is the input here.** Keep your OTLab15 `notice.log` and one-page incident summary open — they are what *triggers* this incident. Keep the OTLab14 baseline open too (endpoints, function codes, value ranges); you will use it again to declare the all-clear.
+A lição mais importante deste laboratório: **em OT, resposta a incidentes não é "desligar a ficha".** Há *segurança física (safety)* e *disponibilidade* a proteger — o polling legítimo master↔outstation **tem de continuar a correr** enquanto ejetas o atacante. Esse compromisso é o que torna a IR em OT diferente da IR em IT, e é o fio condutor de todas as tarefas abaixo.
 
 > [!NOTE]
-> Two companions live in this lab's directory. `IRPlaybookReference.md` summarises the [NIST SP 800-61r3](https://csrc.nist.gov/pubs/sp/800/61/r3/final) / [800-82](https://csrc.nist.gov/pubs/sp/800/82/r3/final) lifecycle, the OT severity matrix, and the containment/verification recipes. `PurdueModelReference.md` is the visual heart of the lab — the *current (insecure)* vs *target (hardened)* architecture. Record your work in `IR_Template.md` (three artefacts: running log, containment decision record, incident report).
+> **O entregável do OTLab15 é a entrada aqui.** Mantém o teu `notice.log` e o resumo de incidente de uma página do OTLab15 abertos — são eles que *desencadeiam* este incidente. Mantém também a baseline do OTLab14 aberta (endpoints, códigos de função, gamas de valores); vais usá-la de novo para declarar o "tudo limpo".
 
-## 📝 Tasks
+> [!NOTE]
+> Dois companheiros vivem na diretoria deste laboratório. `IRPlaybookReference.md` resume o ciclo de vida [NIST SP 800-61r3](https://csrc.nist.gov/pubs/sp/800/61/r3/final) / [800-82](https://csrc.nist.gov/pubs/sp/800/82/r3/final), a matriz de severidade OT e as receitas de contenção/verificação. `PurdueModelReference.md` é o coração visual do laboratório — a arquitetura *atual (insegura)* vs *alvo (endurecida)*. Regista o teu trabalho em `IR_Template.md` (três artefactos: registo corrente, registo de decisão de contenção, relatório de incidente).
+
+## 📝 Tarefas
 
 > [!WARNING]
-> All tasks are conducted inside the lab containers. **Do not run any attack scenario, scanner, or containment rule against hosts outside this lab.** `-incident` emits real, valid DNP3 PDUs and `-contain` edits host firewall rules; pointed at production gear they can disrupt real industrial processes.
+> Todas as tarefas são realizadas dentro dos contentores do laboratório. **Não executes nenhum cenário de ataque, scanner ou regra de contenção contra hosts fora deste laboratório.** O `-incident` emite PDUs DNP3 reais e válidas e o `-contain` edita regras de firewall do host; apontados a equipamento de produção, podem perturbar processos industriais reais.
 
-The seven actions below are each tagged with its CSF 2.0 function and the Purdue overlay it exercises.
+As sete ações abaixo estão etiquetadas, cada uma, com a sua função CSF 2.0 e a sobreposição Purdue que exercita.
 
-### Preparation — `Govern` · `Identify`  *(optional, do once)*
+### Preparação — `Govern` · `Identify`  *(opcional, fazer uma vez)*
 
-- [ ] **Action 1 — Map the estate to Purdue, before the incident.** Bring the lab up with `./OTLab16.sh -start` and `-status` (the four OTLab15 containers return). Using `PurdueModelReference.md`, place every host from Labs 14/15 on a Purdue level and write it into the header of **Artifact 1** (running log). Name the **operations contact / authoriser** now — the person you must call before you cut anything.
-    - *Hint: the outstation/RTU is L`{x}`, the master is L`{x}`, the EWS is the L`{x.x}` boundary host, and the breaker is L`{x}`. The IR plan must name an ops contact `{before|after}` the incident, not during it.*
+- 1️⃣ **Ação 1 — Mapear o parque para Purdue, antes do incidente.** Levanta o laboratório com `./OTLab16.sh -start` e `-status` (os quatro contentores do OTLab15 regressam). Usando `PurdueModelReference.md`, coloca cada host dos Labs 14/15 num nível Purdue e escreve-o no cabeçalho do **Artefacto 1** (registo corrente). Nomeia já o **contacto de operações / autorizador** — a pessoa a quem tens de ligar antes de cortares o que quer que seja.
+    - *Pista: a outstation/RTU é L`{x}`, o master é L`{x}`, a EWS é o host de fronteira L`{x.x}` e o disjuntor é L`{x}`. O plano de IR tem de nomear um contacto de operações `{antes|depois}` do incidente, não durante.*
 
-### Detect
+### Deteção (Detect)
 
 > [!NOTE]
-> **Open the incident live — start the sensor first.** The EWS only records the attack if Zeek is already capturing when it lands. Enter the EWS with `./OTLab16.sh -run`, find its interfaces with `ip -br a`, then start the ready policy in a working directory and leave it running:
+> **Abre o incidente em direto — arranca primeiro o sensor.** A EWS só regista o ataque se o Zeek já estiver a capturar quando ele acontecer. Entra na EWS com `./OTLab16.sh -run`, encontra as suas interfaces com `ip -br a` e depois inicia a política pronta numa diretoria de trabalho, deixando-a a correr:
 > ```
 > mkdir -p ~/ir && cd ~/ir
 > zeek -i <iface> /opt/zeek-lab/local.zeek
 > ```
-> The OT-facing link (`192.168.20.100`) is the one that carries the spoof down to L1. With Zeek capturing, open a **second terminal on the host** and fire the kill-chain:
+> A ligação virada para OT (`192.168.20.100`) é a que transporta o spoof até L1. Com o Zeek a capturar, abre um **segundo terminal no host** e dispara a kill-chain:
 > ```
 > ./OTLab16.sh -incident
 > ```
-> When it finishes, stop Zeek with `Ctrl+C`; `conn.log`, `dnp3.log` and `notice.log` are waiting in `~/ir` — that is the detection that opens this incident. *(Rather reuse the `notice.log` you produced in OTLab15? Skip `-incident` and point the triage below at that file instead.)*
+> Quando terminar, para o Zeek com `Ctrl+C`; `conn.log`, `dnp3.log` e `notice.log` ficam à espera em `~/ir` — essa é a deteção que abre este incidente. *(Preferes reutilizar o `notice.log` que produziste no OTLab15? Salta o `-incident` e aponta a triagem abaixo a esse ficheiro.)*
 
-- [ ] **Action 2 — Triage and declare.** Open the `notice.log` you just generated with `-incident` (or reuse your OTLab15 one). Decide: real incident or false positive? Justify with `conn.log`/`dnp3.log` evidence. Then **declare the incident** — state the scope and **which Purdue level(s) are affected**. In OT the question is not "what data leaked" but **what process is at risk**.
-    - *Hint: a single spoofed READ that reaches the L`{x}` outstation is more serious than a noisy scan that never leaves L`{x.x}`. Focus on process impact vs data breached.*
+- 2️⃣ **Ação 2 — Triagem e declaração.** Abre o `notice.log` que acabaste de gerar com o `-incident` (ou reutiliza o do OTLab15). Decide: incidente real ou falso positivo? Justifica com evidência de `conn.log`/`dnp3.log`. Depois **declara o incidente** — indica o âmbito e **que nível(eis) Purdue estão afetados**. Em OT a pergunta não é "que dados vazaram" mas **que processo está em risco**.
+    - *Pista: um único READ falsificado que chega à outstation L`{x}` é mais grave do que um scan ruidoso que nunca sai de L`{x.x}`. Foca o impacto no processo vs dados violados.*
 
-### Respond
+### Resposta (Respond)
 
-- [ ] **Action 3 — Rebuild the timeline and name the conduit.** From the Zeek logs reconstruct an ordered incident timeline (`ts`, source, technique, CSF function) into **Artifact 1**. Identify the **conduit** the attacker is abusing — describe it in Purdue terms.
-    - *Hint: `cat notice.log | zeek-cut -u ts note src id.resp_h | sort` drafts the timeline — the `-u` flag renders `ts` as a human-readable UTC timestamp instead of the raw epoch (use `-d` for local time). The abused conduit is the path L`{x.x}`→L`{x}` that the dual-homed EWS bridges — the same one the legitimate master poll uses, which is exactly why you cannot simply block all of it.*
+- 3️⃣ **Ação 3 — Reconstruir a cronologia e nomear o conduit.** A partir dos logs Zeek reconstrói uma cronologia ordenada do incidente (`ts`, origem, técnica, função CSF) no **Artefacto 1**. Identifica o **conduit** que o atacante está a abusar — descreve-o em termos Purdue.
+    - *Pista: `cat notice.log | zeek-cut -u ts note src id.resp_h | sort` esboça a cronologia — a flag `-u` apresenta `ts` como um timestamp UTC legível em vez do epoch bruto (usa `-d` para hora local). O conduit abusado é o caminho L`{x.x}`→L`{x}` que a EWS dual-homed faz de ponte — o mesmo que o poll legítimo do master usa, e é exatamente por isso que não podes simplesmente bloqueá-lo todo.*
 
-- [ ] **Action 4 — Cut the conduit (isolate, do not shut down).** Run `./OTLab16.sh -contain`. It applies the reference segmentation: a **surgical DROP** of the attacker host into OT, while the sanctioned master→outstation poll keeps flowing. **Verify with Zeek**: the attacker's flows stop *and* `dnp3.log` shows polling continuing within the OTLab14 ranges. Record the decision, the reversibility, and the post-action checks in **Artifact 2** (Containment Decision Record).
-    - *Hint: containment inserts `DROP -s {xxx.xxx.xx.xx} -d 192.168.20.0/24` at the top of the EWS `FORWARD` chain — the dual-homed EWS routes all corp↔OT traffic, so its `FORWARD` chain is the real chokepoint. Isolate vs shutdown: the feeder must keep being polled. Confirm with `cat conn.log | zeek-cut id.orig_h id.resp_h service | sort -u` — the `{attacker IP}` row is gone, the `{master IP}` row remains.*
+- 4️⃣ **Ação 4 — Cortar o conduit (isolar, não desligar).** Corre `./OTLab16.sh -contain`. Aplica a segmentação de referência: um **DROP cirúrgico** do host atacante para OT, enquanto o poll sancionado master→outstation continua a fluir. **Verifica com Zeek**: os fluxos do atacante param *e* o `dnp3.log` mostra o polling a continuar dentro das gamas do OTLab14. Regista a decisão, a reversibilidade e as verificações pós-ação no **Artefacto 2** (Registo de Decisão de Contenção).
+    - *Pista: a contenção insere `DROP -s {xxx.xxx.xx.xx} -d 192.168.20.0/24` no topo da chain `FORWARD` da EWS — a EWS dual-homed encaminha todo o tráfego corp↔OT, por isso a sua chain `FORWARD` é o verdadeiro ponto de estrangulamento. Isolar vs desligar: o alimentador tem de continuar a ser consultado. Confirma com `cat conn.log | zeek-cut id.orig_h id.resp_h service | sort -u` — a linha do `{IP do atacante}` desapareceu, a linha do `{IP do master}` permanece.*
 
-- [ ] **Action 5 — Eradicate the foothold.** Remove the attacker's foothold on the compromised corporate PC and close the initial vector (the USB / the EWS IP-forwarding that let corp reach OT). Note in your log **what you could not patch on demand** and why.
-    - *Hint: field devices (the L`{x}` outstation/RTU) can't be patched or rebooted on demand mid-incident — eradication in OT often means cutting reach and scheduling the fix for a maintenance window, not a live reboot.*
+- 5️⃣ **Ação 5 — Erradicar o ponto de apoio.** Remove o ponto de apoio do atacante no PC corporativo comprometido e fecha o vetor inicial (a USB / o IP-forwarding da EWS que deixou o corporativo chegar à OT). Anota no teu registo **o que não conseguiste corrigir a pedido** e porquê.
+    - *Pista: os dispositivos de campo (a outstation/RTU L`{x}`) não podem ser corrigidos nem reiniciados a pedido a meio do incidente — a erradicação em OT muitas vezes significa cortar o alcance e agendar a correção para uma janela de manutenção, não um reinício em direto.*
 
-### Recover
+### Recuperação (Recover)
 
-- [ ] **Action 6 — Run the baseline check (process verified, not just threat gone).** Run `./OTLab16.sh -restore` to return to the clean monitored state, then re-run your Zeek baseline. Recovery is signed off **only** when: `notice.log` shows no new alerts, the endpoints/function codes match the OTLab14 allowlists, and the outstation telemetry is back in range (voltage `{xxx–xxx}` V, current `{x.x–xx}` A).
-    - *Hint: "recover" means the **process** is verified normal, not merely that the attacker is gone. Get the ops contact from Action 1 to authorise the all-clear in Artifact 3.*
+- 6️⃣ **Ação 6 — Correr a verificação de baseline (processo verificado, não apenas ameaça eliminada).** Corre `./OTLab16.sh -restore` para regressar ao estado limpo e monitorizado, depois volta a correr a tua baseline Zeek. A recuperação só é aprovada **quando**: o `notice.log` não mostra novos alertas, os endpoints/códigos de função correspondem às allowlists do OTLab14, e a telemetria da outstation volta às gamas (tensão `{xxx–xxx}` V, corrente `{x.x–xx}` A).
+    - *Pista: "recuperar" significa que o **processo** está verificado como normal, não apenas que o atacante desapareceu. Pede ao contacto de operações da Ação 1 para autorizar o "tudo limpo" no Artefacto 3.*
 
-### Recover · Improve
+### Recuperação · Melhoria (Recover · Improve)
 
-- [ ] **Action 7 — Write the post-incident report.** Complete **Artifact 3** (Incident Report): executive summary, scope in Purdue terms, timeline summary, **root cause**, attacker actions mapped to **MITRE ATT&CK for ICS**, IOCs you would turn into SIEM rules, response actions tagged by CSF function, what you deliberately did **not** do and why, recovery sign-off, and lessons learned. Your top recommendation should feed back into the architecture: introduce the **IDMZ / segmentation** from `PurdueModelReference.md` so this conduit cannot be abused again. **This document closes the OTLab14/15/16 trilogy.**
-    - *Hint: root cause is not "the USB" alone — it is `{USB}` + `{flat IT/OT}` + `{dual-homed EWS with no DMZ}`. The fix that prevents recurrence is the **target** Purdue architecture, which ties Recover back to Improve.*
+- 7️⃣ **Ação 7 — Escrever o relatório pós-incidente.** Completa o **Artefacto 3** (Relatório de Incidente): resumo executivo, âmbito em termos Purdue, resumo da cronologia, **causa-raiz**, ações do atacante mapeadas ao **MITRE ATT&CK for ICS**, IOCs que transformarias em regras de SIEM, ações de resposta etiquetadas por função CSF, o que deliberadamente **não** fizeste e porquê, aprovação da recuperação e lições aprendidas. A tua principal recomendação deve realimentar a arquitetura: introduzir a **IDMZ / segmentação** do `PurdueModelReference.md` para que este conduit não possa ser abusado de novo. **Este documento fecha a trilogia OTLab14/15/16.**
+    - *Pista: a causa-raiz não é "a USB" sozinha — é `{USB}` + `{IT/OT plana}` + `{EWS dual-homed sem DMZ}`. A correção que previne a recorrência é a arquitetura Purdue **alvo**, que liga Recover de volta a Improve.*
 
-## 🎯 Skills
+## 🎯 Competências
 
-**Hands-on:** Incident Triage · Log Forensics (Zeek) · Network Containment · OT Architecture Hardening
+**Práticas:** Triagem de Incidentes · Análise Forense de Logs (Zeek) · Contenção de Rede · Endurecimento de Arquitetura OT
 
-**Applying [MITRE ATT&CK for ICS](https://attack.mitre.org/matrices/ics/) — Mitigations:**
+**A aplicar [MITRE ATT&CK for ICS](https://attack.mitre.org/matrices/ics/) — Mitigações:**
 
 [![M0930 Network Segmentation](https://img.shields.io/badge/ATT%26CK_ICS-M0930_Network_Segmentation-blue)](https://attack.mitre.org/mitigations/M0930/)
 [![M0937 Filter Network Traffic](https://img.shields.io/badge/ATT%26CK_ICS-M0937_Filter_Network_Traffic-blue)](https://attack.mitre.org/mitigations/M0937/)
 [![M0931 Network Intrusion Prevention](https://img.shields.io/badge/ATT%26CK_ICS-M0931_Network_Intrusion_Prevention-blue)](https://attack.mitre.org/mitigations/M0931/)
 
-**Mapped to the [NIST SP 800-61r3](https://csrc.nist.gov/pubs/sp/800/61/r3/final) incident-response lifecycle ([CSF 2.0](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) functions):** the seven actions move through *Govern/Identify* (Preparation) → *Detect* → *Respond* → *Recover/Improve*.
+**Mapeado ao ciclo de vida de resposta a incidentes [NIST SP 800-61r3](https://csrc.nist.gov/pubs/sp/800/61/r3/final) (funções [CSF 2.0](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final)):** as sete ações percorrem *Govern/Identify* (Preparação) → *Detect* → *Respond* → *Recover/Improve*.
 
-## 🔖 Nomenclature
+## 🔖 Nomenclatura
 
-- ATT&CK for ICS: MITRE's adversary-behaviour knowledge base for industrial control systems; *Mitigations* are the defensive counterparts of *Techniques*.
-- conduit: in the Purdue/IEC 62443 sense, the controlled communication path between two security zones.
-- CSF: [NIST Cybersecurity Framework](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final); version 2.0 organises work into the functions *Govern, Identify, Protect, Detect, Respond, Recover*.
-- CSIRT: Computer Security Incident Response Team.
-- DNP3: Distributed Network Protocol version 3 — SCADA protocol widely used in electric, water, and oil & gas utilities.
-- EWS: Engineering workstation — the host operated by control engineers to configure, program, and monitor field devices.
-- ICS: Industrial control system.
-- IDMZ: Industrial Demilitarised Zone — the Purdue Level 3.5 buffer that brokers all IT↔OT traffic.
-- IOC: Indicator of compromise — an observable network or host artefact that suggests an intrusion.
-- IR / IRP: Incident response / incident response plan.
-- NSM: Network security monitoring — passive observation of traffic; Zeek is an NSM tool.
-- OT: Operational technology.
-- PERA / Purdue: Purdue Enterprise Reference Architecture — the layered (L0–L5) reference model for ICS network segmentation.
-- RTO / RPO: Recovery time objective / recovery point objective.
-- RTU: Remote terminal unit — the field device role typically played by a DNP3 outstation.
-- SCADA: Supervisory control and data acquisition.
-- [SP 800-61](https://csrc.nist.gov/pubs/sp/800/61/r3/final) / [SP 800-82](https://csrc.nist.gov/pubs/sp/800/82/r3/final): NIST guides for incident handling and for OT security, respectively.
+- ATT&CK for ICS: base de conhecimento da MITRE sobre comportamento de adversários em sistemas de controlo industrial; as *Mitigações* são as contrapartes defensivas das *Técnicas*.
+- conduit: no sentido Purdue/IEC 62443, o caminho de comunicação controlado entre duas zonas de segurança.
+- CSF: [NIST Cybersecurity Framework](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final); a versão 2.0 organiza o trabalho nas funções *Govern, Identify, Protect, Detect, Respond, Recover*.
+- CSIRT: Equipa de resposta a incidentes de segurança informática (*Computer Security Incident Response Team*).
+- DNP3: Distributed Network Protocol version 3 — protocolo SCADA amplamente usado em serviços de eletricidade, água e óleo & gás.
+- EWS: Estação de trabalho de engenharia (*engineering workstation*) — o host operado por engenheiros de controlo para configurar, programar e monitorizar dispositivos de campo.
+- ICS: Sistema de controlo industrial (*industrial control system*).
+- IDMZ: Zona desmilitarizada industrial (*Industrial Demilitarised Zone*) — o buffer de nível Purdue 3.5 que intermedeia todo o tráfego IT↔OT.
+- IOC: Indicador de compromisso (*indicator of compromise*) — um artefacto observável de rede ou host que sugere uma intrusão.
+- IR / IRP: Resposta a incidentes / plano de resposta a incidentes.
+- NSM: Monitorização de segurança de rede (*network security monitoring*) — observação passiva do tráfego; o Zeek é uma ferramenta NSM.
+- OT: Tecnologia operacional (*operational technology*).
+- PERA / Purdue: Purdue Enterprise Reference Architecture — o modelo de referência em camadas (L0–L5) para segmentação de redes ICS.
+- RTO / RPO: Objetivo de tempo de recuperação / objetivo de ponto de recuperação (*recovery time/point objective*).
+- RTU: Unidade terminal remota (*remote terminal unit*) — o papel de dispositivo de campo tipicamente desempenhado por uma outstation DNP3.
+- SCADA: Supervisão, controlo e aquisição de dados (*supervisory control and data acquisition*).
+- [SP 800-61](https://csrc.nist.gov/pubs/sp/800/61/r3/final) / [SP 800-82](https://csrc.nist.gov/pubs/sp/800/82/r3/final): guias NIST para tratamento de incidentes e para segurança OT, respetivamente.
 
-## 🛠️ Usage
+## 🛠️ Utilização
 
 ```
 Usage: ./OTLab16.sh -start [kali|ubuntu] | -stop | -clean | -run | -restart | -status
                     | -attack <scenario> | -incident | -contain | -restore
 
-  -start     Start the DNP3_IR environment using the specified distro (default: ubuntu)
-             Valid options: kali (rolling) or ubuntu (22.04)
-  -run       Open a terminal inside the otlab-student (EWS) container
-  -clean     Remove containers, volumes, and network (reverts all iptables rules)
-  -stop      Stop all containers
-  -restart   Restart previously stopped containers
-  -status    Show current containers status
-  -attack    Fire a single controlled attack scenario (scan | fingerprint | spoof)
-  -incident  Replay the full kill-chain (scan → fingerprint → spoof) to open the incident
-  -contain   Apply the reference containment: surgical DROP of the attacker into OT,
-             preserving the legitimate master→outstation poll
-  -restore   Lift containment and return to the clean monitored state
+  -start     Inicia o ambiente DNP3_IR usando a distro indicada (predefinição: ubuntu)
+             Opções válidas: kali (rolling) ou ubuntu (22.04)
+  -run       Abre um terminal dentro do contentor otlab-student (EWS)
+  -clean     Remove contentores, volumes e a rede (reverte todas as regras iptables)
+  -stop      Para todos os contentores
+  -restart   Reinicia contentores previamente parados
+  -status    Mostra o estado atual dos contentores
+  -attack    Dispara um único cenário de ataque controlado (scan | fingerprint | spoof)
+  -incident  Repete a kill-chain completa (scan → fingerprint → spoof) para abrir o incidente
+  -contain   Aplica a contenção de referência: DROP cirúrgico do atacante para OT,
+             preservando o poll legítimo master→outstation
+  -restore   Levanta a contenção e regressa ao estado limpo e monitorizado
 ```
 
 > [!NOTE]
-> When run on **WSL2**, the script auto-detects the environment and applies the kernel-level rules (`bridge-nf-call-iptables=0` and two `DOCKER-USER` ACCEPT rules) needed for traffic to be routed across the two Docker bridges. `-contain` then applies its surgical `DROP` in the **EWS's own `FORWARD` chain** (via `docker exec`, no host `sudo`), and `-restore` removes it — a host `DOCKER-USER` rule would be silently inert under WSL2, since cross-bridge traffic is L2-switched. The cross-bridge `ACCEPT` rules require `sudo` and are reverted on `-clean`. On native Linux and macOS Docker Desktop the cross-bridge rules are skipped — see `IRPlaybookReference.md` for the containment details.
+> Quando executado em **WSL2**, o script deteta automaticamente o ambiente e aplica as regras ao nível do kernel (`bridge-nf-call-iptables=0` e duas regras `DOCKER-USER` ACCEPT) necessárias para que o tráfego seja encaminhado entre as duas *bridges* Docker. O `-contain` aplica então o seu `DROP` cirúrgico na **própria chain `FORWARD` da EWS** (via `docker exec`, sem `sudo` no host), e o `-restore` remove-o — uma regra `DOCKER-USER` no host seria silenciosamente inerte em WSL2, já que o tráfego entre bridges é comutado a L2. As regras `ACCEPT` entre bridges requerem `sudo` e são revertidas no `-clean`. Em Linux nativo e no Docker Desktop do macOS as regras entre bridges são ignoradas — vê `IRPlaybookReference.md` para os detalhes da contenção.
 
----
+## Soluções
 
-## Solutions
+Este laboratório é **operacional, não código-para-preencher**: o estudante conduz o incidente pelos verbos do `OTLab16.sh` e regista o raciocínio em `IR_Template.md`. A chave do instrutor é o conteúdo esperado dos três artefactos mais a contenção de referência:
 
-This lab is **operational, not code-to-fill**: the student drives the incident through the `OTLab16.sh` verbs and records reasoning in `IR_Template.md`. The instructor key is the expected content of the three artefacts plus the reference containment:
-
-- **Containment (reference):** a single surgical drop in the EWS `FORWARD` chain — `docker exec otlab-student iptables -I FORWARD 1 -s 192.168.21.30 -d 192.168.20.0/24 -j DROP` — inserted at the top so it wins over the forwarding rules. The master (192.168.21.20) keeps polling the outstation (192.168.20.10); only the attacker (192.168.21.30) loses its path into OT. This is what `-contain` applies and `-restore` removes.
-- **Baseline check (all-clear criteria):** clean `notice.log`, endpoints and function codes back inside the OTLab14 allowlists, and telemetry in range (110–130 V, 0.5–15 A) with the breaker toggling on its ~100 s cadence.
-- **Root cause:** USB-borne malware **+** flat IT/OT with no segmentation **+** dual-homed EWS bridging the two segments with no IDMZ. The recommended fix is the *target* architecture in `PurdueModelReference.md`.
+- **Contenção (referência):** um único drop cirúrgico na chain `FORWARD` da EWS — `docker exec otlab-student iptables -I FORWARD 1 -s 192.168.21.30 -d 192.168.20.0/24 -j DROP` — inserido no topo para ganhar às regras de encaminhamento. O master (192.168.21.20) continua a consultar a outstation (192.168.20.10); apenas o atacante (192.168.21.30) perde o seu caminho para OT. É isto que o `-contain` aplica e o `-restore` remove.
+- **Verificação de baseline (critérios de "tudo limpo"):** `notice.log` limpo, endpoints e códigos de função de volta dentro das allowlists do OTLab14, e telemetria nas gamas (110–130 V, 0,5–15 A) com o disjuntor a alternar na sua cadência de ~100 s.
+- **Causa-raiz:** malware via USB **+** IT/OT plana sem segmentação **+** EWS dual-homed a fazer ponte entre os dois segmentos sem IDMZ. A correção recomendada é a arquitetura *alvo* em `PurdueModelReference.md`.

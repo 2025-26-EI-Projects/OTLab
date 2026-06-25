@@ -29,7 +29,7 @@ show_banner() {
     echo "|  |  | | | |  |__| .'| . |"
     echo "|_____| |_| |_____|__,|___|"
     printf "\033[1;37m" # White and bold
-    printf "Exercise:  DNP3 Protocol Emulation and Traffic Analysis with Wireshark\n"
+    printf "Exercise:  14-DNP3 Protocol Emulation and Traffic Analysis Using Wireshark\n"
     printf "Version:   0.3\n"
     printf "Author:    rafaelfarias\n"
     printf "\033[0m" # Reset all styles

@@ -1,91 +1,91 @@
-# DNP3 Lab — Zeek Reference
+# DNP3 Lab — Referência Zeek
 
-## 1. What this document is
+## 1. O que é este documento
 
-Three things, in order of how often you'll reach for each:
+Três coisas, por ordem da frequência com que recorrerás a cada uma:
 
-1. **Zeek essentials** (§2) — the minimum vocabulary you need to read the events firing in `dnp3.log` and write the detectors `local.zeek` is wired to load.
-2. **One fully worked detector** (§3) — `unknown-endpoint.zeek` from end to end, with every non-obvious line annotated. Use as the template for your own.
-3. **Pattern sketches** (§4) — for the remaining core detectors (`unexpected-function-code.zeek`, `link-vs-ip-mismatch.zeek`), the Zeek event surface to hook plus the key idiom, with the actual handler body left for you to fill.
+1. **Essenciais de Zeek** (§2) — o vocabulário mínimo de que precisas para ler os eventos que disparam no `dnp3.log` e escrever os detetores que o `local.zeek` está preparado para carregar.
+2. **Um detetor totalmente resolvido** (§3) — o `unknown-endpoint.zeek` de ponta a ponta, com cada linha não-óbvia anotada. Usa-o como modelo para os teus.
+3. **Esboços de padrão** (§4) — para os restantes detetores centrais (`unexpected-function-code.zeek`, `link-vs-ip-mismatch.zeek`), a superfície de eventos Zeek a ligar mais o idioma-chave, deixando o corpo do handler para tu preencheres.
 
-## 2. Zeek essentials for OTLab15
+## 2. Essenciais de Zeek para o OTLab15
 
-### 2.1 The event-driven execution model
+### 2.1 O modelo de execução orientado a eventos
 
-Zeek scripts are **event handlers**. You don't write a `main`; you write functions that fire when Zeek's protocol analysers parse something out of the packet stream. The DNP3 events you will meet in this lab are:
+Os scripts Zeek são **event handlers**. Não escreves um `main`; escreves funções que disparam quando os analisadores de protocolo do Zeek extraem algo do fluxo de pacotes. Os eventos DNP3 que vais encontrar neste laboratório são:
 
-| Event                                                                          | Fires when                                                |
+| Evento                                                                          | Dispara quando                                            |
 | ------------------------------------------------------------------------------ | --------------------------------------------------------- |
-| `new_connection(c)`                                                            | Zeek sees the first packet of any new TCP/UDP flow        |
-| `dnp3_application_request_header(c, is_orig, application, fc)`                 | DNP3 analyser parses a request header                     |
-| `dnp3_application_response_header(c, is_orig, application, fc, iin)`           | DNP3 analyser parses a response header                    |
-| `dnp3_header_block(c, is_orig, len, ctrl, dest_addr, src_addr)`                | Every DNP3 link-layer header — exposes the link addresses |
+| `new_connection(c)`                                                            | O Zeek vê o primeiro pacote de qualquer novo fluxo TCP/UDP |
+| `dnp3_application_request_header(c, is_orig, application, fc)`                 | O analisador DNP3 processa um cabeçalho de pedido         |
+| `dnp3_application_response_header(c, is_orig, application, fc, iin)`           | O analisador DNP3 processa um cabeçalho de resposta       |
+| `dnp3_header_block(c, is_orig, len, ctrl, dest_addr, src_addr)`                | Cada cabeçalho de camada de ligação DNP3 — expõe os endereços de ligação |
 
-Every one of them carries a `c: connection` as the first parameter — see §2.2. Multiple handlers may subscribe to the same event; Zeek runs them all in registration order. Order is rarely something you need to care about.
+Cada um deles transporta um `c: connection` como primeiro parâmetro — ver §2.2. Vários handlers podem subscrever o mesmo evento; o Zeek executa-os todos por ordem de registo. A ordem raramente é algo com que tenhas de te preocupar.
 
-### 2.2 The `connection` record
+### 2.2 O registo `connection`
 
-Most fields you'll touch live under `c$id`:
+A maioria dos campos que vais tocar vivem sob `c$id`:
 
 ```zeek
-c$id$orig_h     # addr — IP that opened the TCP connection
-c$id$resp_h     # addr — IP that answered
-c$id$orig_p     # port — source port (e.g., 54321/tcp)
-c$id$resp_p     # port — destination port (e.g., 20000/tcp)
-c$uid           # string — unique connection id, used across all logs
+c$id$orig_h     # addr — IP que abriu a conexão TCP
+c$id$resp_h     # addr — IP que respondeu
+c$id$orig_p     # port — porta de origem (ex.: 54321/tcp)
+c$id$resp_p     # port — porta de destino (ex.: 20000/tcp)
+c$uid           # string — id único da conexão, usado em todos os logs
 ```
 
-Note the dollar-sign accessor: Zeek records are `c$field`, not `c.field`.
+Repara no acessor com cifrão: os registos Zeek são `c$field`, não `c.field`.
 
-`c$id$resp_p == 20000/tcp` is how you check the destination port is DNP3. The literal `20000/tcp` is a `port` value, not an integer — Zeek's type system tags ports with their transport so `20000/tcp != 20000/udp`.
+`c$id$resp_p == 20000/tcp` é como verificas que a porta de destino é DNP3. O literal `20000/tcp` é um valor `port`, não um inteiro — o sistema de tipos do Zeek marca as portas com o respetivo transporte, por isso `20000/tcp != 20000/udp`.
 
-### 2.3 Sets, tables, and the `in` / `!in` operators
+### 2.3 Conjuntos, tabelas e os operadores `in` / `!in`
 
-The whole baseline-allowlist machinery rests on two collection types:
+Toda a maquinaria de allowlist da baseline assenta em dois tipos de coleção:
 
 ```zeek
-# A set of addresses (no duplicates, no ordering).
+# Um conjunto de endereços (sem duplicados, sem ordenação).
 const expected_endpoints: set[addr] = { 192.168.20.10, 192.168.21.20 } &redef;
 
-# A table mapping link address → expected IP.
+# Uma tabela que mapeia endereço de ligação → IP esperado.
 const link_addr_to_ip: table[count] of addr = {
     [1] = 192.168.20.10,
     [2] = 192.168.21.20,
 } &redef;
 ```
 
-Membership tests are infix:
+Os testes de pertença são infixos:
 
 ```zeek
-if ( my_ip !in expected_endpoints )    { ... }   # IP not in the allowlist
-if ( link_addr in link_addr_to_ip )    { ... }   # link addr is known
+if ( my_ip !in expected_endpoints )    { ... }   # IP fora da allowlist
+if ( link_addr in link_addr_to_ip )    { ... }   # endereço de ligação conhecido
 ```
 
-Table lookup is `t[k]`, identical to most languages. `&redef` makes the constant overridable from another script (handy when `local.zeek` decides to widen the allowlist for a specific run without editing `baseline.zeek`).
+A consulta de tabela é `t[k]`, idêntica à da maioria das linguagens. `&redef` torna a constante substituível a partir de outro script (útil quando o `local.zeek` decide alargar a allowlist para uma execução específica sem editar o `baseline.zeek`).
 
-### 2.4 Modules and namespacing
+### 2.4 Módulos e namespacing
 
-Every detector in this lab belongs to either `DNP3Baseline` (the allowlists in `baseline.zeek`) or `DNP3Anomaly` (the notices the detectors raise). To put a declaration in a module, start the file with `module X;`:
+Cada detetor neste laboratório pertence a `DNP3Baseline` (as allowlists no `baseline.zeek`) ou a `DNP3Anomaly` (os notices que os detetores levantam). Para colocar uma declaração num módulo, começa o ficheiro com `module X;`:
 
 ```zeek
 module DNP3Anomaly;
 
 export {
-    # exported declarations — visible as DNP3Anomaly::Foo from outside
+    # declarações exportadas — visíveis como DNP3Anomaly::Foo a partir do exterior
 }
 ```
 
-References across modules use `Module::name`:
+As referências entre módulos usam `Module::name`:
 
 ```zeek
 if ( c$id$orig_h !in DNP3Baseline::expected_endpoints ) { ... }
 ```
 
-Why one shared `DNP3Anomaly` module across three detectors instead of three separate modules? Because all the notices belong to one logical family — the namespace `DNP3Anomaly::Unknown_Endpoint`, `DNP3Anomaly::Unexpected_Function_Code`, ... reads better in `notice.log` than `UnknownEndpoint::Note`, `UnexpectedFC::Note`, ...
+Porquê um único módulo `DNP3Anomaly` partilhado entre três detetores, em vez de três módulos separados? Porque todos os notices pertencem a uma família lógica — o namespace `DNP3Anomaly::Unknown_Endpoint`, `DNP3Anomaly::Unexpected_Function_Code`, ... lê-se melhor no `notice.log` do que `UnknownEndpoint::Note`, `UnexpectedFC::Note`, ...
 
-### 2.5 The Notice framework
+### 2.5 A framework Notice
 
-Raising an alert is one function call:
+Levantar um alerta é uma só chamada de função:
 
 ```zeek
 NOTICE([$note = DNP3Anomaly::Unknown_Endpoint,
@@ -93,17 +93,17 @@ NOTICE([$note = DNP3Anomaly::Unknown_Endpoint,
         $conn = c]);
 ```
 
-Key conventions:
+Convenções-chave:
 
-- `$note` — an enum value you declared with `redef enum Notice::Type += { Foo };` inside an `export {}` block.
-- `$msg` — free-form human-readable string. Use `fmt(...)` for formatting (like `printf`); `%s` works for both `addr` and `string`, `%d` for `count`.
-- `$conn = c` — passes the whole connection in. The Notice framework then auto-fills `id.orig_h`, `id.resp_h`, `uid`, and the timestamp in `notice.log`. Without `$conn`, you would have to set `$src` and `$dst` by hand.
+- `$note` — um valor enum que declaraste com `redef enum Notice::Type += { Foo };` dentro de um bloco `export {}`.
+- `$msg` — string livre legível por humanos. Usa `fmt(...)` para formatação (como o `printf`); `%s` funciona para `addr` e `string`, `%d` para `count`.
+- `$conn = c` — passa a conexão inteira. A framework Notice preenche então automaticamente `id.orig_h`, `id.resp_h`, `uid` e o timestamp no `notice.log`. Sem `$conn`, terias de definir `$src` e `$dst` à mão.
 
-Suppression is automatic: Zeek's default is to silence duplicate notices (same `note`, same `src`, same `dst`) for one hour. A `scan` attack with 1024 SYNs from one IP produces exactly one `Unknown_Endpoint` notice, not 1024. You almost never need to override this.
+A supressão é automática: o Zeek, por omissão, silencia notices duplicados (mesmo `note`, mesmo `src`, mesmo `dst`) durante uma hora. Um ataque `scan` com 1024 SYNs de um IP produz exatamente um notice `Unknown_Endpoint`, não 1024. Quase nunca precisas de o substituir.
 
-## 3. Worked example — `unknown-endpoint.zeek`
+## 3. Exemplo resolvido — `unknown-endpoint.zeek`
 
-The full file:
+O ficheiro completo:
 
 ```zeek
 ##! Notice when a DNP3 conversation involves an endpoint outside
@@ -160,37 +160,37 @@ event dnp3_application_response_header(c: connection, is_orig: bool,
     }
 ```
 
-### Walkthrough — the four lines that matter
+### Análise — as quatro linhas que importam
 
-1. **`@load ../baseline.zeek`** — pulls in the allowlist constants. Without this, `DNP3Baseline::expected_endpoints` is unresolved and Zeek refuses to start.
-2. **`module DNP3Anomaly; export { redef enum Notice::Type += { ... } }`** — adds a new value to the global `Notice::Type` enum. The `export` block is necessary for the enum value to be visible outside the module (so `notice.log` can label rows with it).
-3. **`o !in DNP3Baseline::expected_endpoints || r !in ...`** — set-membership check. Either side outside is enough to flag the conversation. Using `local` bindings (`o`, `r`) avoids repeating `c$id$orig_h` and makes the `fmt` arguments shorter.
-4. **`function check_endpoints(c, kind, fc)`** — the request and response events carry the *same* check, so the body lives in one helper and each handler is a single call. `kind` is the only thing that differs (the word in the notice), passed in as a `string`. One place to fix if the rule changes — no copy to drift out of sync.
-5. **`NOTICE([$note=..., $msg=..., $conn=c])`** — record-literal construction passed to a function. `$conn=c` is the auto-fill trick from §2.5.
+1. **`@load ../baseline.zeek`** — traz as constantes de allowlist. Sem isto, `DNP3Baseline::expected_endpoints` fica por resolver e o Zeek recusa-se a arrancar.
+2. **`module DNP3Anomaly; export { redef enum Notice::Type += { ... } }`** — adiciona um novo valor ao enum global `Notice::Type`. O bloco `export` é necessário para que o valor do enum seja visível fora do módulo (para o `notice.log` poder etiquetar linhas com ele).
+3. **`o !in DNP3Baseline::expected_endpoints || r !in ...`** — teste de pertença a conjunto. Qualquer um dos lados fora chega para sinalizar a conversa. Usar ligações `local` (`o`, `r`) evita repetir `c$id$orig_h` e encurta os argumentos do `fmt`.
+4. **`function check_endpoints(c, kind, fc)`** — os eventos de pedido e de resposta carregam a *mesma* verificação, por isso o corpo vive num único auxiliar e cada handler é uma só chamada. `kind` é a única coisa que difere (a palavra no notice), passada como `string`. Um único sítio a corrigir se a regra mudar — sem cópia a dessincronizar-se.
+5. **`NOTICE([$note=..., $msg=..., $conn=c])`** — construção de literal-registo passada a uma função. `$conn=c` é o truque de preenchimento automático da §2.5.
 
-### Stretch — catching `scan` before any DNP3 PDU is parsed
+### Extensão — apanhar o `scan` antes de qualquer PDU DNP3 ser processada
 
-The `scan` attack rains TCP SYNs on port 20000. The handshake never completes, so no `dnp3_application_request_header` ever fires — and the detector above stays silent during pure scanning. To catch those, subscribe to `new_connection` and flag any flow with `c$id$resp_p == 20000/tcp` whose `orig_h` is outside the allowlist. Two events, one detector, full coverage. Left as exercise.
+O ataque `scan` despeja SYNs TCP na porta 20000. O handshake nunca completa, por isso nenhum `dnp3_application_request_header` dispara — e o detetor acima fica em silêncio durante a varredura pura. Para os apanhar, subscreve `new_connection` e sinaliza qualquer fluxo com `c$id$resp_p == 20000/tcp` cujo `orig_h` esteja fora da allowlist. Dois eventos, um detetor, cobertura total. Deixado como exercício.
 
-## 4. Pattern sketches for the other core cycles
+## 4. Esboços de padrão para os outros ciclos centrais
 
-### 4.1 `unexpected-function-code.zeek` (fingerprint cycle)
+### 4.1 `unexpected-function-code.zeek` (ciclo fingerprint)
 
-**Event surface.** Same two events as §3: `dnp3_application_request_header` exposes `fc: count` directly; `dnp3_application_response_header` does too.
+**Superfície de eventos.** Os mesmos dois eventos da §3: `dnp3_application_request_header` expõe `fc: count` diretamente; `dnp3_application_response_header` também.
 
-**Where the pattern bites.** `fc_request` in `dnp3.log` is the textual name (`READ`, `RESPONSE`, ...). `fc` in the event is the numeric code. Your allowlist must use the numbers (0x01, 0x81, 0x00, 0x82) — see the hint in `baseline.zeek`.
+**Onde o padrão atua.** `fc_request` no `dnp3.log` é o nome textual (`READ`, `RESPONSE`, ...). `fc` no evento é o código numérico. A tua allowlist tem de usar os números (0x01, 0x81, 0x00, 0x82) — vê a pista no `baseline.zeek`.
 
-**Edge case.** Zeek's binpac parser may skip the request event for unassigned function codes. The response side still fires with an `iin` error reply — that's your fallback signal. See the hint in OTLab15.md task 2.2.
+**Caso-limite.** O parser binpac do Zeek pode saltar o evento de pedido para códigos de função não atribuídos. O lado de resposta ainda dispara com uma resposta de erro `iin` — esse é o teu sinal de recurso. Vê a pista na tarefa 2.2 do OTLab15.md.
 
-### 4.2 `link-vs-ip-mismatch.zeek` (spoof cycle)
+### 4.2 `link-vs-ip-mismatch.zeek` (ciclo spoof)
 
-**Event surface.** `dnp3_header_block` — Zeek surfaces the DNP3 link-layer source and destination addresses, which never appear in `dnp3.log`. This is the only way to cross-check the link-layer identity against the IP carrying the frame.
+**Superfície de eventos.** `dnp3_header_block` — o Zeek expõe os endereços de origem e destino da camada de ligação DNP3, que nunca aparecem no `dnp3.log`. Esta é a única forma de cruzar a identidade da camada de ligação contra o IP que transporta a trama.
 
-**Why the `is_orig` branch matters.** A DNP3 frame can come from either side of the TCP connection. `is_orig=T` means the originator sent the frame, so the link source maps to `c$id$orig_h`. `is_orig=F` flips it. Skipping this branch produces false positives on every legitimate response.
+**Porque importa o ramo `is_orig`.** Uma trama DNP3 pode vir de qualquer lado da conexão TCP. `is_orig=T` significa que o originador enviou a trama, por isso a origem de ligação mapeia para `c$id$orig_h`. `is_orig=F` inverte. Saltar este ramo produz falsos positivos em cada resposta legítima.
 
-## 5. `zeek-cut` and JSON recipes
+## 5. Receitas `zeek-cut` e JSON
 
-`zeek-cut` extracts named columns from Zeek's default TSV logs. The `-d` flag rewrites `ts` from epoch to ISO 8601. Pipe to `column -t -s $'\t'` for aligned output.
+O `zeek-cut` extrai colunas nomeadas dos logs TSV predefinidos do Zeek. A flag `-d` reescreve `ts` de epoch para ISO 8601. Encadeia para `column -t -s $'\t'` para saída alinhada.
 
 ```bash
 # notice.log — the detector outputs
@@ -206,17 +206,17 @@ zeek-cut -d ts uid id.orig_h id.resp_h fc_request fc_reply < dnp3.log
 zeek-cut note < notice.log | sort -u
 ```
 
-If you prefer JSON, restart Zeek with the JSON LogAscii flag and use `jq`:
+Se preferires JSON, reinicia o Zeek com a flag JSON do LogAscii e usa `jq`:
 
 ```bash
 zeek -C LogAscii::use_json=T -i eth1 /opt/zeek-lab/local.zeek
 jq -c '{ts, note, src, dst, msg}' < notice.log
 ```
 
-## 6. Official Zeek docs
+## 6. Documentação oficial do Zeek
 
-- [conn.log](https://docs.zeek.org/en/master/logs/conn.html) — fields and connection states
-- [dnp3.log fields](https://docs.zeek.org/en/master/scripts/base/protocols/dnp3/main.zeek.html) — `DNP3::Info` record definition
-- [DNP3 events](https://docs.zeek.org/en/master/scripts/base/bif/plugins/Zeek_DNP3.events.bif.zeek.html) — every `dnp3_*` event signature
-- [Notice framework](https://docs.zeek.org/en/master/frameworks/notice.html) — `Notice::Info`, `Notice::policy`, suppression
-- [Scripting language reference](https://docs.zeek.org/en/master/script-reference/index.html) — types, operators, records, `&redef`
+- [conn.log](https://docs.zeek.org/en/master/logs/conn.html) — campos e estados de conexão
+- [dnp3.log fields](https://docs.zeek.org/en/master/scripts/base/protocols/dnp3/main.zeek.html) — definição do registo `DNP3::Info`
+- [DNP3 events](https://docs.zeek.org/en/master/scripts/base/bif/plugins/Zeek_DNP3.events.bif.zeek.html) — assinatura de cada evento `dnp3_*`
+- [Notice framework](https://docs.zeek.org/en/master/frameworks/notice.html) — `Notice::Info`, `Notice::policy`, supressão
+- [Scripting language reference](https://docs.zeek.org/en/master/script-reference/index.html) — tipos, operadores, registos, `&redef`

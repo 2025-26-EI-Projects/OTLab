@@ -1,12 +1,10 @@
-# DNP3 — Wireshark Reference
+# DNP3 — Referência Wireshark
 
-Reference card for analysing DNP3 traffic with Wireshark. Use this alongside `DNP3Lab.md` when you need to look up a dissector field, a function code, or the layout of a DNP3 frame. This document **describes the protocol generically** — it does not state which addresses, function codes or object groups appear in your specific capture; that is for you to observe.
+Cartão de consulta para analisar tráfego DNP3 com o Wireshark. Usa-o em conjunto com o `OTLab14.md` quando precisares de procurar um campo do dissecador, um código de função ou a estrutura de uma trama DNP3. Este documento **descreve o protocolo de forma genérica** — não indica que endereços, códigos de função ou grupos de objetos aparecem na tua captura específica; isso é para tu observares.
 
----
+## 🧩 Visão geral da estrutura da trama
 
-## 🧩 Frame layout overview
-
-A DNP3 PDU travels inside a single TCP segment (default port `20000/tcp`). The dissector breaks it into three layers:
+Uma PDU DNP3 viaja dentro de um único segmento TCP (porta predefinida `20000/tcp`). O dissecador divide-a em três camadas:
 
 ```
 +---------------------------------+
@@ -21,142 +19,126 @@ A DNP3 PDU travels inside a single TCP segment (default port `20000/tcp`). The d
 +---------------------------------+
 ```
 
-Read top-down when you want to understand *intent* (start with Application). Read bottom-up when you want to understand *delivery* (start with Data Link).
+Lê de cima para baixo quando quiseres perceber a *intenção* (começa na Application). Lê de baixo para cima quando quiseres perceber a *entrega* (começa na Data Link).
 
----
+## 🔌 Fazer o Wireshark dissecar DNP3
 
-## 🔌 Getting Wireshark to dissect DNP3
+Se um pacote aparecer apenas como **TCP** com os bytes de payload a começar em `05 64`, o dissecador não atuou. Força-o:
 
-If a packet shows only as **TCP** with payload bytes starting in `05 64`, the dissector did not engage. Force it:
+> **Clica com o botão direito no pacote → Decode As… → define "TCP port" para `20000` e "Current" para `DNP 3.0`**
 
-> **Right-click on the packet → Decode As… → set "TCP port" to `20000` and "Current" to `DNP 3.0`**
+Depois disto, a coluna *Protocol* mostra **DNP 3.0** e o painel Packet Details ganha as três camadas acima.
 
-After this, the *Protocol* column displays **DNP 3.0** and the Packet Details pane gains the three layers above.
+## 🛰️ Camada de ligação de dados (Data Link) — cabeçalho fixo de 10 bytes
 
----
-
-## 🛰️ Data Link Layer — fixed 10-byte header
-
-| Offset | Field          | Size | Notes                                                                 |
+| Offset | Campo          | Tam. | Notas                                                                 |
 |-------:|----------------|-----:|-----------------------------------------------------------------------|
-| 0–1    | Start bytes    | 2 B  | Always `0x05 0x64`. Marks the beginning of every DNP3 frame on the wire. |
-| 2      | Length         | 1 B  | Octets in the rest of the frame, **excluding** CRCs. Max 255.         |
-| 3      | Control        | 1 B  | DIR / PRM / FCB / FCV bits + a 4-bit data-link function code.         |
-| 4–5    | Destination    | 2 B  | Logical address of the receiver (little-endian).                      |
-| 6–7    | Source         | 2 B  | Logical address of the sender (little-endian).                        |
-| 8–9    | CRC            | 2 B  | 16-bit CRC computed over the previous 8 bytes (link-level only).      |
+| 0–1    | Start bytes    | 2 B  | Sempre `0x05 0x64`. Marca o início de cada trama DNP3 no fio.          |
+| 2      | Length         | 1 B  | Octetos no resto da trama, **excluindo** os CRC. Máx. 255.            |
+| 3      | Control        | 1 B  | Bits DIR / PRM / FCB / FCV + um código de função de ligação de 4 bits. |
+| 4–5    | Destination    | 2 B  | Endereço lógico do recetor (little-endian).                           |
+| 6–7    | Source         | 2 B  | Endereço lógico do emissor (little-endian).                           |
+| 8–9    | CRC            | 2 B  | CRC de 16 bits calculado sobre os 8 bytes anteriores (apenas ao nível da ligação). |
 
-After this header, the payload is split into 16-byte blocks each followed by its own 2-byte CRC.
+Após este cabeçalho, o payload é dividido em blocos de 16 bytes, cada um seguido do seu próprio CRC de 2 bytes.
 
 > [!NOTE]
-> The data-link **addresses are not IP addresses** — they are short numeric IDs that identify the master and the outstation at the DNP3 application level. Two devices can share the same IP and still be distinguished by these addresses, and the same address can roam to a different IP without changing identity. The CRCs here protect against transmission errors only; they are **not** cryptographic.
+> Os **endereços da camada de ligação não são endereços IP** — são IDs numéricos curtos que identificam o master e a outstation ao nível da aplicação DNP3. Dois dispositivos podem partilhar o mesmo IP e ainda assim distinguir-se por estes endereços, e o mesmo endereço pode mudar para um IP diferente sem alterar a identidade. Os CRC aqui protegem apenas contra erros de transmissão; **não** são criptográficos.
 
----
+## 📨 Camada de aplicação (Application) — função + objetos
 
-## 📨 Application Layer — function + objects
+Cada PDU de aplicação contém:
 
-Every Application PDU contains:
+1. Um byte de **Application Control** (bits FIR/FIN/CON/UNS + um número de sequência de 4 bits).
+2. Um **Function Code** (1 byte) — o que o emissor quer fazer.
+3. Para respostas, um campo **IIN** (Internal Indications) — 2 bytes de flags de estado sobre a outstation.
+4. Zero ou mais **Object headers**, cada um seguido dos seus dados.
 
-1. An **Application Control** byte (FIR/FIN/CON/UNS bits + a 4-bit sequence number).
-2. A **Function Code** (1 byte) — what the sender wants to do.
-3. For responses, an **IIN** (Internal Indications) field — 2 bytes of status flags about the outstation.
-4. Zero or more **Object headers**, each followed by their data.
+Cada Object header transporta:
 
-Each Object header carries:
-
-| Field           | Meaning                                                                     |
+| Campo           | Significado                                                                  |
 |-----------------|-----------------------------------------------------------------------------|
-| Group           | The class of point (binary input, analog input, counter, etc.).             |
-| Variation       | How that point is encoded (with/without flags, 16-bit vs 32-bit, float, …). |
-| Qualifier       | How the indices that follow are expressed (range, count, prefixed, …).      |
-| Range / Count   | Which indices the data block covers.                                        |
-| Data            | The actual point values (interpretation depends on Group + Variation).      |
+| Group           | A classe do ponto (binary input, analog input, counter, etc.).              |
+| Variation       | Como esse ponto é codificado (com/sem flags, 16-bit vs 32-bit, float, …).   |
+| Qualifier       | Como os índices seguintes são expressos (range, count, prefixed, …).        |
+| Range / Count   | Que índices o bloco de dados abrange.                                        |
+| Data            | Os valores reais dos pontos (a interpretação depende de Group + Variation). |
 
----
+## 📋 Tabela de códigos de função (mais comuns)
 
-## 📋 Function code table (commonly seen)
+**Pedidos** master → outstation:
 
-Master → outstation **requests**:
+| Código (dec / hex) | Nome              | Efeito                                                        |
+|-------------------:|-------------------|---------------------------------------------------------------|
+| 0  / `0x00`        | CONFIRM           | Confirma um fragmento. Não transporta objetos.               |
+| 1  / `0x01`        | READ              | Pede à outstation que devolva valores de pontos.             |
+| 2  / `0x02`        | WRITE             | Escreve um valor (ex.: no objeto de tempo, bits IIN).        |
+| 3  / `0x03`        | SELECT            | Seleciona um ponto de controlo para um OPERATE subsequente.  |
+| 4  / `0x04`        | OPERATE           | Opera um ponto previamente selecionado (Select-Before-Operate). |
+| 5  / `0x05`        | DIRECT_OPERATE    | Opera um ponto de controlo numa só etapa (sem Select).       |
+| 6  / `0x06`        | DIRECT_OPERATE_NR | Igual a `0x05` mas sem resposta esperada.                    |
+| 13 / `0x0D`        | COLD_RESTART      | Força um reinício total da outstation.                       |
+| 14 / `0x0E`        | WARM_RESTART      | Força um reinício parcial da outstation.                     |
+| 23 / `0x17`        | DELAY_MEASURE     | Usado na sincronização de tempo.                             |
 
-| Code (dec / hex) | Name              | Effect                                                        |
-|-----------------:|-------------------|---------------------------------------------------------------|
-| 0  / `0x00`      | CONFIRM           | Acknowledges a fragment. Carries no objects.                  |
-| 1  / `0x01`      | READ              | Asks the outstation to return point values.                   |
-| 2  / `0x02`      | WRITE             | Writes a value (e.g. into the time object, IIN bits).         |
-| 3  / `0x03`      | SELECT            | Selects a control point for a subsequent OPERATE.             |
-| 4  / `0x04`      | OPERATE           | Operates a previously selected point (Select-Before-Operate). |
-| 5  / `0x05`      | DIRECT_OPERATE    | Operates a control point in one shot (no Select).             |
-| 6  / `0x06`      | DIRECT_OPERATE_NR | Same as `0x05` but no response expected.                      |
-| 13 / `0x0D`      | COLD_RESTART      | Forces a full outstation restart.                             |
-| 14 / `0x0E`      | WARM_RESTART      | Forces a partial outstation restart.                          |
-| 23 / `0x17`      | DELAY_MEASURE     | Used in time synchronisation.                                 |
+**Respostas** outstation → master:
 
-Outstation → master **responses**:
-
-| Code (dec / hex) | Name                  | Effect                                                |
-|-----------------:|-----------------------|-------------------------------------------------------|
-| 129 / `0x81`     | RESPONSE              | Reply to a master's READ (or other) request.          |
-| 130 / `0x82`     | UNSOLICITED_RESPONSE  | Spontaneous report from the outstation, not solicited.|
-| 131 / `0x83`     | AUTHENTICATE_RESPONSE | Reply within DNP3 Secure Authentication exchanges.    |
+| Código (dec / hex) | Nome                  | Efeito                                                |
+|-------------------:|-----------------------|-------------------------------------------------------|
+| 129 / `0x81`       | RESPONSE              | Resposta a um pedido READ (ou outro) do master.       |
+| 130 / `0x82`       | UNSOLICITED_RESPONSE  | Reporte espontâneo da outstation, não solicitado.     |
+| 131 / `0x83`       | AUTHENTICATE_RESPONSE | Resposta dentro das trocas de DNP3 Secure Authentication. |
 
 > [!NOTE]
-> Wireshark prints the symbolic name in parentheses after the hex byte (e.g. `Function Code: READ (0x01)`). You don't need to memorise numbers — but knowing the families (request 0–127, response 128–255) helps you read filters.
+> O Wireshark mostra o nome simbólico entre parênteses depois do byte hex (ex.: `Function Code: READ (0x01)`). Não precisas de memorizar números — mas conhecer as famílias (pedido 0–127, resposta 128–255) ajuda a ler filtros.
 
----
+## 🗂️ Grupos de objetos prováveis em telemetria básica
 
-## 🗂️ Object groups likely to appear in basic telemetry
+(Para a biblioteca completa de objetos DNP3 consulta a especificação do protocolo — este é um pequeno subconjunto útil.)
 
-(For the full DNP3 object library see the protocol specification — this is a small useful subset.)
+| Group | Classe             | O que transporta                                  |
+|------:|--------------------|---------------------------------------------------|
+| 1     | Binary Input       | Pontos de estado on/off (ex.: disjuntor aberto/fechado). |
+| 2     | Binary Input Event | Alterações com marca temporal de pontos Binary Input.    |
+| 10    | Binary Output      | Estado das coils de saída.                        |
+| 12    | Binary Command     | Comandos de controlo para saídas binárias.        |
+| 30    | Analog Input       | Valores analógicos medidos (tensão, corrente, …). |
+| 32    | Analog Input Event | Alterações com marca temporal de pontos Analog Input. |
+| 41    | Analog Output      | Pontos de comando analógico de saída.             |
+| 50    | Time and Date      | Usado para sincronização de tempo.                |
 
-| Group | Class              | What it carries                                  |
-|------:|--------------------|--------------------------------------------------|
-| 1     | Binary Input       | On/off status points (e.g. breaker open/closed). |
-| 2     | Binary Input Event | Time-tagged changes of Binary Input points.      |
-| 10    | Binary Output      | Output coil status.                              |
-| 12    | Binary Command     | Control commands for binary outputs.             |
-| 30    | Analog Input       | Measured analog values (voltage, current, …).    |
-| 32    | Analog Input Event | Time-tagged changes of Analog Input points.      |
-| 41    | Analog Output      | Output analog command points.                    |
-| 50    | Time and Date      | Used for time sync.                              |
+Uma *variation* seleciona a codificação: ex.: Group 30 var 1 = inteiro de 32 bits com flags, var 2 = inteiro de 16 bits com flags, var 5 = float de 32 bits, var 6 = float de 64 bits. O Wireshark mostra a variation como parte do object header.
 
-A *variation* selects the encoding: e.g. Group 30 var 1 = 32-bit int with flags, var 2 = 16-bit int with flags, var 5 = 32-bit float, var 6 = 64-bit float. Wireshark shows the variation as part of the object header.
+## 🔍 Filtros de exibição do Wireshark (cheat sheet)
 
----
-
-## 🔍 Wireshark display filters (cheat sheet)
-
-| Goal                                            | Filter                                                |
+| Objetivo                                        | Filtro                                                |
 |-------------------------------------------------|-------------------------------------------------------|
-| Only DNP3 frames                                | `dnp3`                                                |
-| Only DNP3 to/from a specific TCP endpoint       | `dnp3 && tcp.port == 20000`                           |
-| Only frames sourced from one IP                 | `dnp3 && ip.src == <ip>`                              |
-| Only requests with a given function code        | `dnp3.al.func == <code>` (e.g. `dnp3.al.func == 1`)   |
-| Filter on the data-link source address          | `dnp3.src == <id>`                                    |
-| Filter on the data-link destination address     | `dnp3.dst == <id>`                                    |
-| Show only frames carrying objects of a group    | `dnp3.al.obj == <group_variation_combined>` *         |
+| Apenas tramas DNP3                              | `dnp3`                                                |
+| Apenas DNP3 de/para um endpoint TCP específico  | `dnp3 && tcp.port == 20000`                           |
+| Apenas tramas com origem num IP                 | `dnp3 && ip.src == <ip>`                              |
+| Apenas pedidos com um dado código de função     | `dnp3.al.func == <code>` (ex.: `dnp3.al.func == 1`)   |
+| Filtrar pelo endereço de origem da ligação      | `dnp3.src == <id>`                                    |
+| Filtrar pelo endereço de destino da ligação     | `dnp3.dst == <id>`                                    |
+| Mostrar só tramas com objetos de um grupo       | `dnp3.al.obj == <group_variation_combined>` *         |
 
-\* Wireshark expresses Group/Variation as a single integer (Group × 256 + Variation). When in doubt, click the field in Packet Details — Wireshark shows the exact filter expression at the bottom of the window.
+\* O Wireshark exprime Group/Variation como um único inteiro (Group × 256 + Variation). Na dúvida, clica no campo em Packet Details — o Wireshark mostra a expressão de filtro exata no fundo da janela.
 
----
+## 🧭 Navegação útil no Wireshark
 
-## 🧭 Useful Wireshark navigation
-
-| What you want                                            | How                                                                              |
+| O que queres                                             | Como                                                                              |
 |----------------------------------------------------------|----------------------------------------------------------------------------------|
-| Inspect raw bytes of a frame                             | Bottom pane (**Packet Bytes**). Click a field to highlight bytes.                |
-| See the symbolic name of any DNP3 fiel                   |  **Packet Details**; the filter expression appears at the bottom-left status bar.|
-| Measure time between filtered packets                    | **View → Time Display Format → Seconds Since Previous Displayed Packet**.        |
-| Visualise periodicity                                    | **Statistics → I/O Graph**, with your filter and a 1 s interval.                 |
-| Follow a TCP conversation as bytes                       | Right-click a packet → **Follow → TCP Stream**.                                  |
-| Export a single PDU as bytes                             | Right-click in Packet Bytes → **Copy → … as Hex Stream**.                        |
+| Inspecionar os bytes em bruto de uma trama               | Painel inferior (**Packet Bytes**). Clica num campo para realçar os bytes.       |
+| Ver o nome simbólico de qualquer campo DNP3              | **Packet Details**; a expressão de filtro aparece na barra de estado inferior esquerda. |
+| Medir o tempo entre pacotes filtrados                    | **View → Time Display Format → Seconds Since Previous Displayed Packet**.        |
+| Visualizar a periodicidade                               | **Statistics → I/O Graph**, com o teu filtro e intervalo de 1 s.                 |
+| Seguir uma conversa TCP em bytes                         | Clica com o botão direito num pacote → **Follow → TCP Stream**.                  |
+| Exportar uma única PDU em bytes                          | Clica com o botão direito em Packet Bytes → **Copy → … as Hex Stream**.          |
 
----
+## 🔖 Siglas
 
-## 🔖 Acronyms
-
-- **PDU**: Protocol Data Unit — one self-contained message at a given protocol layer.
-- **APDU / ALPDU**: Application-layer PDU.
-- **CRC**: Cyclic Redundancy Check — error-detection code (not cryptographic).
-- **IIN**: Internal Indications — outstation status flags carried in responses.
-- **SBO**: Select-Before-Operate — two-step control sequence (`SELECT` then `OPERATE`).
-- **DIR / PRM / FCB / FCV**: Direction, Primary, Frame Count Bit, Frame Count Valid — control bits in the data-link header.
+- **PDU**: Protocol Data Unit — uma mensagem autónoma numa dada camada do protocolo.
+- **APDU / ALPDU**: PDU da camada de aplicação.
+- **CRC**: Cyclic Redundancy Check — código de deteção de erros (não criptográfico).
+- **IIN**: Internal Indications — flags de estado da outstation transportadas nas respostas.
+- **SBO**: Select-Before-Operate — sequência de controlo em dois passos (`SELECT` e depois `OPERATE`).
+- **DIR / PRM / FCB / FCV**: Direction, Primary, Frame Count Bit, Frame Count Valid — bits de controlo no cabeçalho da camada de ligação.

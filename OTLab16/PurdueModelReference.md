@@ -1,43 +1,43 @@
-# Purdue Model Reference — current vs target architecture
+# Purdue Model Reference — arquitetura atual vs alvo
 
-> The visual heart of OTLab16. Use it to place hosts on Purdue levels (Action 1),
-> to name the abused conduit (Action 3), and to justify the remediation (Action 7).
-> Companion file: `IRPlaybookReference.md` (process).
+> O coração visual do OTLab16. Usa-o para colocar hosts em níveis Purdue (Ação 1),
+> para nomear o conduit abusado (Ação 3) e para justificar a remediação (Ação 7).
+> Ficheiro companheiro: `IRPlaybookReference.md` (processo).
 
 ---
 
-## 1. The Purdue model (PERA) in one screen
+## 1. O modelo Purdue (PERA) num ecrã
 
-| Level       | Zone                      | Typical assets                                                         |
+| Nível       | Zona                      | Ativos típicos                                                         |
 |-------------|---------------------------|------------------------------------------------------------------------|
-| **L5 / L4** | Enterprise / Corporate IT | ERP, email, corporate apps, user PCs                                   |
-| **L3.5**    | **Industrial DMZ (IDMZ)** | Firewalls, jump host, patch/historian mirror — the *only* IT↔OT broker |
-| **L3**      | Manufacturing Operations  | Engineering workstation (EWS), historian, I/O server                   |
-| **L2**      | Supervisory Control       | SCADA / HMI, DNP3 **master**                                           |
-| **L1**      | Basic Control             | PLCs, RTUs — the DNP3 **outstation**                                   |
-| **L0**      | Physical Process          | Sensors & actuators — the **feeder breaker**                           |
+| **L5 / L4** | Empresa / IT Corporativo  | ERP, email, aplicações corporativas, PCs de utilizador                 |
+| **L3.5**    | **DMZ Industrial (IDMZ)** | Firewalls, jump host, espelho de patch/historian — o *único* intermediário IT↔OT |
+| **L3**      | Operações de Fabrico      | Estação de trabalho de engenharia (EWS), historian, servidor de I/O    |
+| **L2**      | Controlo de Supervisão    | SCADA / HMI, **master** DNP3                                           |
+| **L1**      | Controlo Básico           | PLCs, RTUs — a **outstation** DNP3                                     |
+| **L0**      | Processo Físico           | Sensores e atuadores — o **disjuntor de alimentador**                  |
 
-The rule the model encodes: **traffic flows between adjacent levels through
-controlled conduits**, and **all IT↔OT traffic is brokered through the L3.5 IDMZ**.
-Skipping levels — or bridging IT straight to OT — is the anti-pattern this incident
-exploits.
+A regra que o modelo codifica: **o tráfego flui entre níveis adjacentes através de
+conduits controlados**, e **todo o tráfego IT↔OT é intermediado pela IDMZ de L3.5**.
+Saltar níveis — ou ligar IT diretamente a OT — é o anti-padrão que este incidente
+explora.
 
-## 2. This lab's hosts, mapped to Purdue (fill in Action 1)
+## 2. Os hosts deste laboratório, mapeados a Purdue (preencher na Ação 1)
 
-| Host (container)        | IP                              | Purdue level        | Note                              |
+| Host (contentor)        | IP                              | Nível Purdue        | Nota                              |
 |-------------------------|---------------------------------|---------------------|-----------------------------------|
-| Maria's PC / corporate  | corp segment                    | L`{4/5}`            | initial compromise (USB)          |
-| `dnp3-attacker`         | 192.168.21.30                   | L`{4/5}`            | adversary foothold on corp        |
-| `otlab-student` (EWS)   | 192.168.20.100 / 192.168.21.100 | L`{3}` ↔ dual-homed | **bridges IT↔OT — the violation** |
-| `dnp3-master`           | 192.168.21.20                   | L`{2}`              | sits on corp segment (smell)      |
-| `dnp3-outstation` (RTU) | 192.168.20.10                   | L`{1}`              | field device                      |
-| feeder breaker          | (simulated)                     | L`{0}`              | physical process                  |
+| PC da Maria / corporativo | segmento corporativo          | L`{4/5}`            | compromisso inicial (USB)         |
+| `dnp3-attacker`         | 192.168.21.30                   | L`{4/5}`            | ponto de apoio do adversário em corp |
+| `otlab-student` (EWS)   | 192.168.20.100 / 192.168.21.100 | L`{3}` ↔ dual-homed | **faz ponte IT↔OT — a violação**  |
+| `dnp3-master`           | 192.168.21.20                   | L`{2}`              | está no segmento corp (mau sinal) |
+| `dnp3-outstation` (RTU) | 192.168.20.10                   | L`{1}`              | dispositivo de campo              |
+| disjuntor de alimentador | (simulado)                     | L`{0}`              | processo físico                   |
 
-## 3. Current architecture — *why the incident was possible*
+## 3. Arquitetura atual — *porque o incidente foi possível*
 
-The EWS is **dual-homed** and forwards between IT and OT; there is no IDMZ, and the
-DNP3 master sits out on the corporate segment. Maria's compromised PC therefore has
-a transitive path all the way to the L1 outstation.
+A EWS está **dual-homed** e encaminha entre IT e OT; não há IDMZ, e o master DNP3
+está fora, no segmento corporativo. O PC comprometido da Maria tem, portanto, um
+caminho transitivo até à outstation L1.
 
 ```mermaid
 flowchart TB
@@ -57,15 +57,15 @@ flowchart TB
   EWS --> Out --> Brk
 ```
 
-> The attacker's path and the legitimate poll **share the same conduit** through the
-> EWS. That is exactly why containment must be surgical (drop the attacker, keep the
-> poll) and not a blanket corp↔OT cut.
+> O caminho do atacante e o poll legítimo **partilham o mesmo conduit** através da
+> EWS. É exatamente por isso que a contenção tem de ser cirúrgica (dropar o atacante,
+> manter o poll) e não um corte total corp↔OT.
 
-## 4. Target architecture — *how it should be (the remediation)*
+## 4. Arquitetura alvo — *como deveria ser (a remediação)*
 
-Introduce an **IDMZ at L3.5**, move the master down into OT (L2), make the EWS
-OT-only, and force all IT↔OT traffic through a firewall + jump host. There is then
-**no direct path** from a compromised corporate host to the outstation.
+Introduzir uma **IDMZ em L3.5**, descer o master para OT (L2), tornar a EWS
+exclusivamente OT e forçar todo o tráfego IT↔OT por uma firewall + jump host. Deixa
+de existir **caminho direto** de um host corporativo comprometido para a outstation.
 
 ```mermaid
 flowchart TB
@@ -86,47 +86,47 @@ flowchart TB
   EWS2 --- Mstr2 --> Out2 --> Brk2
 ```
 
-## 5. The through-line
+## 5. O fio condutor
 
-The incident was only possible because the **current** architecture violates the
-Purdue model: no IT/OT separation and a dual-homed EWS acting as an uncontrolled
-conduit. The cure delivered in Post-Incident (Action 7) is the **target**
-architecture — the IDMZ and segmentation — which is also the MITRE ATT&CK for ICS
-mitigation **M0930 Network Segmentation**. This closes the loop from *Respond*
-(Action 4 cuts the conduit tactically) to *Improve* (Action 7 removes it
-architecturally).
+O incidente só foi possível porque a arquitetura **atual** viola o modelo Purdue:
+sem separação IT/OT e com uma EWS dual-homed a atuar como conduit não controlado. A
+cura entregue no Pós-Incidente (Ação 7) é a arquitetura **alvo** — a IDMZ e a
+segmentação — que é também a mitigação MITRE ATT&CK for ICS **M0930 Network
+Segmentation**. Isto fecha o ciclo de *Respond* (a Ação 4 corta o conduit
+taticamente) para *Improve* (a Ação 7 remove-o arquiteturalmente).
 
-## 6. Where the model strains — IIoT & the cloud (food for thought)
+## 6. Onde o modelo se esforça — IIoT & a cloud (para reflexão)
 
-The Purdue model assumes a tidy hierarchy with traffic flowing **only between
-adjacent levels** through controlled conduits. That assumption was reasonable when
-field devices were dumb and connectivity was scarce. IIoT and cloud integration
-quietly break it — worth keeping in mind before treating "achieve Purdue" as the
-end state rather than a baseline.
+O modelo Purdue assume uma hierarquia arrumada com tráfego a fluir **apenas entre
+níveis adjacentes** por conduits controlados. Esse pressuposto era razoável quando os
+dispositivos de campo eram "burros" e a conectividade escassa. A integração IIoT e
+cloud quebra-o discretamente — vale a pena ter isto em mente antes de tratar
+"alcançar Purdue" como o estado final em vez de uma baseline.
 
-- **Level-skipping by design.** An IIoT sensor that ships telemetry straight to a
-  cloud platform (MQTT/HTTPS out) collapses L0–L1 into L4-and-beyond in a single
-  hop. The neat L3.5 broker is bypassed not by an attacker but by the *intended*
-  data path.
-- **The IDMZ stops being the only door.** Purdue's whole security argument rests on
-  IT↔OT traffic being funneled through one controlled choke point. Cloud-managed
-  devices, vendor remote-access agents, and "phone-home" firmware each open an
-  outbound conduit the IDMZ never sees.
-- **North–south vs. east–west.** The model reasons about vertical flows between
-  levels; IIoT adds dense **east–west** chatter (device-to-device, device-to-broker)
-  and **outbound** cloud links that the layered diagram doesn't naturally express.
-- **Trust boundary moves off-site.** When control logic or analytics live in a
-  SaaS/cloud tenant, part of L3/L4 now sits outside the plant entirely — the
-  perimeter you're defending no longer has a fence you own.
-- **Blurred device identity.** A single IIoT gateway can simultaneously be a field
-  sensor (L0/L1), a protocol translator (L2/L3), and a cloud client (L4+). Placing
-  it on one Purdue level — the very first thing Action 1 asks you to do — stops
-  being a clean call.
+- **Salto de níveis por desenho.** Um sensor IIoT que envia telemetria diretamente
+  para uma plataforma cloud (MQTT/HTTPS para fora) colapsa L0–L1 em L4-e-além num
+  único salto. O intermediário L3.5 elegante é contornado, não por um atacante, mas
+  pelo caminho de dados *pretendido*.
+- **A IDMZ deixa de ser a única porta.** Todo o argumento de segurança do Purdue
+  assenta em o tráfego IT↔OT ser canalizado por um único ponto de estrangulamento
+  controlado. Dispositivos geridos na cloud, agentes de acesso remoto de fornecedores
+  e firmware "phone-home" abrem cada um um conduit de saída que a IDMZ nunca vê.
+- **Norte–sul vs este–oeste.** O modelo raciocina sobre fluxos verticais entre
+  níveis; o IIoT adiciona densa conversa **este–oeste** (dispositivo-a-dispositivo,
+  dispositivo-a-broker) e ligações **de saída** para a cloud que o diagrama em camadas
+  não expressa naturalmente.
+- **A fronteira de confiança move-se para fora.** Quando a lógica de controlo ou a
+  analítica vivem num tenant SaaS/cloud, parte de L3/L4 passa a estar fora da
+  instalação — o perímetro que defendes já não tem uma cerca que seja tua.
+- **Identidade de dispositivo difusa.** Um único gateway IIoT pode ser
+  simultaneamente um sensor de campo (L0/L1), um tradutor de protocolo (L2/L3) e um
+  cliente cloud (L4+). Colocá-lo num único nível Purdue — a primeiríssima coisa que a
+  Ação 1 pede — deixa de ser uma decisão limpa.
 
-**So what?** The response isn't to discard Purdue but to layer **zero-trust /
-ISA-62443 zones-and-conduits** thinking on top of it: identity- and policy-based
-segmentation per flow, explicit allow-lists for outbound cloud conduits, and
-treating each IIoT data path as a conduit that needs the same scrutiny as the EWS
-bridge in this lab. The incident here was a *level-skipping* failure (a dual-homed
-host); IIoT makes level-skipping the **default**, so the architectural cure in
-Section 4 becomes a starting point, not the finish line.
+**E então?** A resposta não é descartar o Purdue, mas sobrepor-lhe pensamento de
+**zero-trust / zonas-e-conduits ISA-62443**: segmentação baseada em identidade e
+política por fluxo, allowlists explícitas para conduits de saída para a cloud, e
+tratar cada caminho de dados IIoT como um conduit que precisa do mesmo escrutínio que
+a ponte da EWS neste laboratório. O incidente aqui foi uma falha de *salto de níveis*
+(um host dual-homed); o IIoT torna o salto de níveis o **padrão**, por isso a cura
+arquitetural da Secção 4 passa a ser um ponto de partida, não a linha de chegada.
