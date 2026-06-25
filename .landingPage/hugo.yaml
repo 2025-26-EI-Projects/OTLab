@@ -1,4 +1,4 @@
-baseURL: "https://2025-26-EI-Projects.github.io/OTLab/"
+baseURL: "https://josejoao05.github.io/ExemploPagina.github.io/"
 defaultContentLanguage: "pt"
 defaultContentLanguageInSubdir: false
 
@@ -31,7 +31,7 @@ languages:
       flag: "🇪🇸"
 
 params:
-  github: "https://github.com/2025-26-EI-Projects/OTLab"
+  github: "https://github.com/josejoao05/ExemploPagina.github.io"
   license: "CC-BY-4.0"
 
 markup:

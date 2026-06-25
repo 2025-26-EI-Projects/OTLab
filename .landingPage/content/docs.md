@@ -81,7 +81,7 @@ docker compose version
 ## Clonar o Repositório
 
 ```bash
-git clone https://github.com/2025-26-EI-Projects/OTLab.git
+git clone https://github.com/substationworm/OTLab.git
 cd OTLab
 ```
 

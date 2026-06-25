@@ -62,34 +62,20 @@ jobs:
             mounts:
               - source: .landingPage/archetypes
                 target: archetypes
-
               - source: .landingPage/layouts
                 target: layouts
-
               - source: .landingPage/static
                 target: static
-
               - source: .landingPage/i18n
                 target: i18n
-
               - source: .landingPage/content
                 target: content
-
-              - source: .landingPage/content/labs.md
-                target: content/labs/_index.md
-
-              - source: .landingPage/content/labs.en.md
-                target: content/labs/_index.en.md
-
-              - source: .landingPage/content/labs.es.md
-                target: content/labs/_index.es.md
           EOF
 
           while IFS= read -r labdir; do
             labname=$(basename "$labdir")
 
             cat >> "$MOUNTS_FILE" << EOF
-
               - source: $labname
                 target: content/labs/$labname
           EOF
@@ -97,7 +83,6 @@ jobs:
 
           echo "Generated mounts:"
           cat "$MOUNTS_FILE"
-      
       - name: Build site
         run: hugo --config .landingPage/hugo.yaml,.landingPage/hugo.generated-mounts.yaml --minify --gc
 

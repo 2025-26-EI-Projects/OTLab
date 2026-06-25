@@ -24,52 +24,77 @@ Este projeto segue uma abordagem **Docs-as-Code**, onde laboratórios, documenta
 
 # Pré-requisitos
 
-| Ferramenta              | Versão mínima | Utilização                    |
-| ----------------------- | ------------- | ----------------------------- |
-| Git                     | 2.x           | Versionamento                 |
-| Hugo Extended           | Última versão | Pré-visualização local        |
-| Docker + Docker Compose | 24.x          | Execução dos laboratórios     |
-| Python 3                | 3.10+         | Script de tradução (opcional) |
+| Ferramenta              | Versão mínima | Utilização                           |
+|-------------------------|---------------|--------------------------------------|
+| Git                     | 2.x           | Versionamento                        |
+| Hugo Extended           | Última versão | Pré-visualização local               |
+| Docker + Docker Compose | 24.x          | Execução dos laboratórios            |
+| Bash                    | —             | Geração dos mounts do Hugo (`tools/dev.sh`) |
 
 ---
-
 # Configuração Inicial
 
+## 1. Clonar o repositório
+
 ```bash
-# 1. Fazer fork do repositório
+git clone https://github.com/substationworm/OTLab.git
 
-# 2. Clonar o fork localmente
-git clone https://github.com/<o-teu-username>/ExemploPagina.github.io.git
+cd OTLab
+```
 
-cd ExemploPagina.github.io
+Verificar o remote configurado:
 
-# 3. Adicionar o repositório original
-git remote add upstream https://2025-26-EI-Projects.github.io/OTLab/
-
-# 4. Confirmar os remotes
+```bash
 git remote -v
 ```
 
-Executar o site localmente:
+---
+
+## 2. Gerar o ficheiro de mounts do Hugo
+
+O ficheiro `.landingPage/hugo.generated-mounts.yaml` **não é armazenado no repositório** e encontra-se listado no `.gitignore`.
+
+Para testar a landing page localmente, é necessário gerar este ficheiro após efetuar o clone do repositório.
+
+Executar:
 
 ```bash
-hugo server --config .landingPage/hugo.yaml
+./.landingPage/tools/dev.sh
 ```
 
-Aceder depois a:
+Este comando gera automaticamente:
 
 ```text
-http://localhost:1313
+.landingPage/hugo.generated-mounts.yaml
 ```
 
-Para manter o fork atualizado:
+e arranca o `hugo server` de seguida. Sempre que for adicionado, removido ou renomeado um laboratório (`OTLabXX`), basta correr o script novamente.
+
+---
+
+## 3. Executar a landing page localmente
+
+O passo anterior já arranca o servidor. Para o fazer manualmente noutra ocasião (com o ficheiro de mounts já gerado):
 
 ```bash
-git fetch upstream
-git merge upstream/main
-git push origin main
+hugo server --config .landingPage/hugo.yaml,.landingPage/hugo.generated-mounts.yaml -D
 ```
 
+---
+
+## 4. Abrir no navegador
+
+```text
+http://localhost:1313/
+```
+
+ou, caso o `baseURL` esteja configurado para GitHub Pages:
+
+```text
+http://localhost:1313/OTLab/
+```
+> [!NOTE]
+> O ficheiro `.landingPage/hugo.generated-mounts.yaml` é um artefacto gerado localmente e não deve ser adicionado ao repositório.
 ---
 
 # Estrutura do Projeto
@@ -88,7 +113,7 @@ ExemploPagina.github.io/
 │   ├── content/
 │   ├── i18n/
 │   ├── layouts/
-│   ├── scripts/
+│   ├── tools/
 │   ├── static/
 │   ├── hugo.yaml
 │   ├── README.md
@@ -155,14 +180,14 @@ Os ficheiros `.sh` são opcionais.
 O ficheiro principal do laboratório é:
 
 ```text
-lab-14.md
+OTLab14.md
 ```
 
-As restantes versões devem conter as traduções para Inglês e Espanhol:
+As restantes versões devem conter as traduções para Inglês e Espanhol, respeitando o sufixo em maiúsculas:
 
 ```text
-lab-14.en.md
-lab-14.es.md
+OTLab14-EN.md
+OTLab14-ES.md
 ```
 
 ---
@@ -194,7 +219,7 @@ Editar os ficheiros pretendidos:
 ```text
 OTLab01/
 ├── index.md
-├── lab-1.md
+├── OTLab01.md
 ```
 
 Depois:
@@ -220,13 +245,13 @@ OTLabXX/
 ├── index.en.md
 ├── index.es.md
 │
-├── lab-X.md
-├── lab-X.en.md
-├── lab-X.es.md
+├── OTLabXX.md
+├── OTLabXX-EN.md
+├── OTLabXX-ES.md
 │
-├── lab-X.pdf
-├── lab-X.en.pdf
-├── lab-X.es.pdf
+├── OTLabXX.pdf
+├── OTLabXX-EN.pdf
+├── OTLabXX-ES.pdf
 │
 ├── OTLabXX.sh
 └── OTLabXX-Offline.sh
@@ -293,12 +318,12 @@ index.es.md
 e
 
 ```text
-lab-X.md
-lab-X.en.md
-lab-X.es.md
+OTLabXX.md
+OTLabXX-EN.md
+OTLabXX-ES.md
 ```
 
-O workflow pode utilizar o DeepL para auxiliar o processo de tradução quando configurado.
+As traduções devem ser feitas manualmente; não existe atualmente nenhuma integração automática de tradução no workflow.
 
 ---
 
@@ -309,9 +334,9 @@ Os PDFs são gerados automaticamente pelo GitHub Actions a partir dos ficheiros 
 São produzidas automaticamente as versões:
 
 ```text
-lab-X.pdf
-lab-X.en.pdf
-lab-X.es.pdf
+OTLabXX.pdf
+OTLabXX-EN.pdf
+OTLabXX-ES.pdf
 ```
 
 Não é necessário gerar PDFs manualmente.
@@ -344,7 +369,7 @@ Exemplo:
 Antes de abrir um Pull Request:
 
 ```bash
-hugo server --config .landingPage/hugo.yaml
+./.landingPage/tools/dev.sh
 ```
 
 Confirmar que:
